@@ -25,6 +25,19 @@ node_modules/
 .DS_Store
 Thumbs.db
 
+# Logs
+*.log
+
+# Claude Code
+.claude/
+
+# Python tooling
+.mypy_cache/
+.pytest_cache/
+
+# Test coverage
+coverage/
+
 # Secrets
 credentials.json
 *.pem
