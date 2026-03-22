@@ -1,6 +1,6 @@
 # ABOUTME: ClusterQueue for team-a with 4 CPU and 8Gi memory quota.
 # ABOUTME: Supports preemption so high-priority workloads can evict lower ones.
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: ClusterQueue
 metadata:
   name: team-a-cq

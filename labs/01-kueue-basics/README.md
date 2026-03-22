@@ -57,10 +57,11 @@ your ClusterQueue definitions.
 Install Kueue into the cluster using the official OCI Helm chart:
 
 ```bash
-helm install kueue oci://registry.k8s.io/kueue/kueue \
-  --version v0.16.4 \
+helm install kueue oci://registry.k8s.io/kueue/charts/kueue \
+  --version 0.16.4 \
   -n kueue-system \
-  --create-namespace
+  --create-namespace \
+  --wait --timeout 5m
 ```
 
 Wait for the Kueue controller to become ready:

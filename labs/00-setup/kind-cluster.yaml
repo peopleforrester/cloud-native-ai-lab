@@ -5,7 +5,7 @@ apiVersion: kind.x-k8s.io/v1alpha4
 name: ai-workshop
 nodes:
   - role: control-plane
-    image: kindest/node:v1.31.4
+    image: kindest/node:v1.33.0
     extraPortMappings:
       # NodePort mappings so you can reach services from the host machine.
       # Labs that expose services via NodePort use ports in this range.
@@ -19,14 +19,14 @@ nodes:
         hostPort: 30002
         protocol: TCP
   - role: worker
-    image: kindest/node:v1.31.4
+    image: kindest/node:v1.33.0
     labels:
       # Simulated GPU label — later labs use this for scheduling decisions.
       node.kubernetes.io/gpu-type: simulated
       # Topology zone — used by labs that demonstrate zone-aware placement.
       topology.kubernetes.io/zone: zone-a
   - role: worker
-    image: kindest/node:v1.31.4
+    image: kindest/node:v1.33.0
     labels:
       node.kubernetes.io/gpu-type: simulated
       topology.kubernetes.io/zone: zone-b

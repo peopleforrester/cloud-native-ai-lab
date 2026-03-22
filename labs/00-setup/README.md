@@ -43,9 +43,8 @@ move to a cluster with actual GPUs, the only change is swapping simulated labels
 and resources for real device plugins.
 
 > **Kubernetes version note:** This lab uses `kindest/node` images for
-> Kubernetes 1.31, which is well-supported by kind v0.20+. Newer Kubernetes
-> releases (1.32+) may not have published kind node images yet. If you want to
-> use a different version, update the `image:` lines in `kind-cluster.yaml`.
+> Kubernetes 1.33. If you want to use a different version, update the `image:`
+> lines in `kind-cluster.yaml`.
 
 ## Exercise
 
@@ -150,9 +149,9 @@ You should see output similar to:
 
 ```
 NAME                        STATUS   ROLES           AGE   VERSION
-ai-workshop-control-plane   Ready    control-plane   2m    v1.31.x
-ai-workshop-worker          Ready    <none>          2m    v1.31.x
-ai-workshop-worker2         Ready    <none>          2m    v1.31.x
+ai-workshop-control-plane   Ready    control-plane   2m    v1.33.x
+ai-workshop-worker          Ready    <none>          2m    v1.33.x
+ai-workshop-worker2         Ready    <none>          2m    v1.33.x
 ```
 
 The two worker nodes should have labels including:

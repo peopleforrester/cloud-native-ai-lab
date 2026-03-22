@@ -1,6 +1,6 @@
 # ABOUTME: ResourceFlavor defining a default CPU resource type for Kueue.
 # ABOUTME: Used by ClusterQueues to describe the kind of compute available.
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: ResourceFlavor
 metadata:
   name: default-cpu

@@ -1,6 +1,6 @@
 # ABOUTME: ClusterQueue for team-b with 2 CPU and 4Gi memory quota.
 # ABOUTME: Smaller quota than team-a to demonstrate fair sharing between teams.
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: ClusterQueue
 metadata:
   name: team-b-cq
