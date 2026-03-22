@@ -22,15 +22,25 @@ class TestJobSetVersion:
     """JobSet version must be v0.11.1, not v0.10.1."""
 
     def test_no_incorrect_jobset_version(self, repo_root: Path) -> None:
-        """The incorrect JobSet version v0.10.1 should not appear in any content file."""
+        """The incorrect JobSet version v0.10.1 should not appear as a current version."""
         for md_file, content in _read_content_files(repo_root):
-            # Only flag v0.10.1 when it appears near "JobSet" context
-            if "v0.10.1" in content and "jobset" in content.lower():
-                rel = md_file.relative_to(repo_root)
-                pytest.fail(
-                    f"{rel} contains incorrect JobSet version v0.10.1 "
-                    f"(should be v0.11.1)"
-                )
+            if "v0.10.1" not in content or "jobset" not in content.lower():
+                continue
+            # Allow in correction context (e.g., "NOT v0.10.1")
+            for line in content.split("\n"):
+                if "v0.10.1" in line:
+                    lower_line = line.lower()
+                    correction_context = any(
+                        word in lower_line
+                        for word in ["not v0.10.1", "incorrect", "corrected",
+                                     "should be", "was v0.10.1"]
+                    )
+                    if not correction_context:
+                        rel = md_file.relative_to(repo_root)
+                        pytest.fail(
+                            f"{rel} contains incorrect JobSet version v0.10.1 "
+                            f"(should be v0.11.1)"
+                        )
 
     def test_correct_jobset_version_exists(self, repo_root: Path) -> None:
         """The correct JobSet version v0.11.1 must appear in at least one content file."""
@@ -44,14 +54,24 @@ class TestMCPServerCount:
     """MCP server count must be 10,000+, not 6,400."""
 
     def test_no_incorrect_mcp_count(self, repo_root: Path) -> None:
-        """The incorrect MCP server count 6,400 should not appear in content files."""
+        """The incorrect MCP server count 6,400 should not appear as a current count."""
         for md_file, content in _read_content_files(repo_root):
-            if "6,400" in content or "6400" in content:
-                rel = md_file.relative_to(repo_root)
-                pytest.fail(
-                    f"{rel} contains incorrect MCP server count 6,400 "
-                    f"(should be 10,000+)"
-                )
+            if "6,400" not in content and "6400" not in content:
+                continue
+            for line in content.split("\n"):
+                if "6,400" in line or "6400" in line:
+                    lower_line = line.lower()
+                    correction_context = any(
+                        word in lower_line
+                        for word in ["not 6,400", "not 6400", "incorrect",
+                                     "corrected", "should be"]
+                    )
+                    if not correction_context:
+                        rel = md_file.relative_to(repo_root)
+                        pytest.fail(
+                            f"{rel} contains incorrect MCP server count 6,400 "
+                            f"(should be 10,000+)"
+                        )
 
     def test_correct_mcp_count_exists(self, repo_root: Path) -> None:
         """The correct MCP server count 10,000+ must appear in at least one content file."""
@@ -81,12 +101,15 @@ class TestInferenceObjective:
             lines = content.split("\n")
             for i, line in enumerate(lines, 1):
                 if "InferenceModel" in line:
-                    # Allow if it's in a rename/migration context
-                    lower_line = line.lower()
+                    # Check surrounding context (3 lines before and after)
+                    start = max(0, i - 4)
+                    end = min(len(lines), i + 3)
+                    context_block = " ".join(lines[start:end]).lower()
                     rename_context = any(
-                        word in lower_line
+                        word in context_block
                         for word in ["renamed", "was renamed", "previously", "formerly",
-                                     "migration", "replaced", "old name", "not inferencemodel"]
+                                     "migration", "replaced", "old name",
+                                     "not inferencemodel", "pre-ga", "pre_ga"]
                     )
                     if not rename_context:
                         pytest.fail(
@@ -109,8 +132,8 @@ class TestGenAIStatQualifier:
         """When 66% appears with gen AI context, it should have the qualifier."""
         for md_file, content in _read_content_files(repo_root):
             rel = str(md_file.relative_to(repo_root))
-            # Skip the fact-check doc
-            if "compass_artifact" in rel:
+            # Skip source materials (fact-check doc and talk outline)
+            if "compass_artifact" in rel or "talk-outline" in rel:
                 continue
             # Look for "66%" near gen AI / generative AI context
             matches = list(re.finditer(r"66\s*%", content))

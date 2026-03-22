@@ -1,0 +1,9 @@
+# ABOUTME: LocalQueue in team-b-ns namespace pointing to team-b's ClusterQueue.
+# ABOUTME: Users submit jobs to this queue; Kueue handles admission from here.
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  name: team-b-lq
+  namespace: team-b-ns
+spec:
+  clusterQueue: team-b-cq

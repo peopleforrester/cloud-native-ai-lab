@@ -1,0 +1,43 @@
+# ABOUTME: InferenceObjective maps a user-facing model name to backend models with priority.
+# ABOUTME: Renamed from InferenceModel at GA — use InferenceObjective for current versions.
+
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceObjective
+metadata:
+  name: coding-model
+  namespace: inference-demo
+spec:
+  # modelName is the user-facing name that clients use in API requests.
+  # When a client sends {"model": "our-coding-model", ...}, the gateway
+  # matches this field to find the right InferenceObjective.
+  #
+  # This decouples the client-facing model name from the actual model
+  # running on the backend. You can swap backend models without changing
+  # client code.
+  modelName: our-coding-model
+
+  # criticality controls routing priority.
+  # - Critical: These requests are always served, even under load.
+  #   The gateway will preempt BestEffort requests if necessary.
+  # - BestEffort: These requests are served when capacity is available.
+  #   Under heavy load, they may be queued or rejected.
+  #
+  # This lets you run mixed workloads on the same pool — production
+  # traffic as Critical, batch/internal traffic as BestEffort.
+  criticality: Critical
+
+  # poolRef points to the InferencePool that serves this objective.
+  # All requests matching this objective are routed to pods in this pool.
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: llm-pool
+
+  # targetModels lists the actual backend model(s) that serve this objective.
+  # The gateway uses these to determine model affinity when picking a pod.
+  #
+  # You can list multiple models for A/B testing or gradual rollout.
+  # The weight field controls traffic distribution between models.
+  targetModels:
+    - name: deepseek-coder-v2
+      weight: 100

@@ -1,0 +1,36 @@
+# ABOUTME: InferencePool defines a group of inference server pods for model-aware routing.
+# ABOUTME: Part of the Gateway API Inference Extension — requires the extension CRDs installed.
+
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferencePool
+metadata:
+  name: llm-pool
+  namespace: inference-demo
+spec:
+  # selector picks which pods belong to this pool.
+  # This works the same way as a Service selector — any pod with matching
+  # labels is considered part of the pool.
+  # In production, these would be pods running vLLM, Triton, or another
+  # inference server with one or more models loaded.
+  selector:
+    app: vllm-server
+
+  # targetPortNumber is the port where the inference server listens for
+  # requests. vLLM defaults to 8000, Triton to 8001 for gRPC / 8000 for HTTP.
+  targetPortNumber: 8000
+
+  # extensionRef points to the endpoint-picker service.
+  # The endpoint picker is a sidecar or standalone service that implements
+  # the intelligent routing logic. It receives candidate pod lists from the
+  # gateway and returns the best pod for each request based on:
+  #   - Model affinity (is the requested model already loaded on this pod?)
+  #   - Queue depth (how many pending requests does this pod have?)
+  #   - KV-cache utilization (for LLMs, how full is the KV-cache?)
+  #
+  # The reference implementation is provided by the Gateway API Inference
+  # Extension project. In production, you can also write your own picker.
+  extensionRef:
+    group: ""
+    kind: Service
+    name: llm-endpoint-picker
+    port: 9002

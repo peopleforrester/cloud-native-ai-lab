@@ -1,0 +1,65 @@
+# ABOUTME: eksctl ClusterConfig for an EKS cluster with a GPU-enabled managed node group.
+# ABOUTME: Uses g5.xlarge instances (1x A10G GPU) — costs approximately $1.01/hour per node.
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: kubecon-gpu-lab
+  region: us-east-1
+  version: "1.31"
+
+# IAM OIDC provider is required for service account IAM roles
+# and the EBS CSI driver addon.
+iam:
+  withOIDC: true
+
+managedNodeGroups:
+  # CPU node group for system workloads (control plane components, operators).
+  # This keeps GPU nodes free for actual inference workloads.
+  - name: system
+    instanceType: m5.large
+    desiredCapacity: 2
+    minSize: 2
+    maxSize: 3
+    volumeSize: 50
+    volumeType: gp3
+    labels:
+      role: system
+    tags:
+      purpose: kubecon-lab
+
+  # GPU node group for inference and training workloads.
+  # g5.xlarge provides 1x NVIDIA A10G (24 GB), 4 vCPUs, 16 GB RAM.
+  # Scaling is set to 1-2 nodes to minimize cost during experimentation.
+  - name: gpu-workers
+    instanceType: g5.xlarge
+    desiredCapacity: 1
+    minSize: 1
+    maxSize: 2
+    volumeSize: 100
+    volumeType: gp3
+    labels:
+      role: gpu-worker
+      nvidia.com/gpu.present: "true"
+    tags:
+      purpose: kubecon-lab
+    # Taint GPU nodes so only workloads that explicitly tolerate GPUs
+    # get scheduled here. This prevents system pods from consuming
+    # GPU node resources.
+    taints:
+      - key: nvidia.com/gpu
+        value: "true"
+        effect: NoSchedule
+
+addons:
+  # EBS CSI driver for persistent volume support (model storage).
+  - name: aws-ebs-csi-driver
+    wellKnownPolicies:
+      ebsCSIController: true
+  # VPC CNI for pod networking.
+  - name: vpc-cni
+  # CoreDNS for cluster DNS.
+  - name: coredns
+  # kube-proxy for service networking.
+  - name: kube-proxy

@@ -1,0 +1,32 @@
+# ABOUTME: Kind cluster configuration for the AI workshop lab environment.
+# ABOUTME: Creates 1 control-plane + 2 workers with simulated GPU labels and zone topology.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: ai-workshop
+nodes:
+  - role: control-plane
+    image: kindest/node:v1.31.4
+    extraPortMappings:
+      # NodePort mappings so you can reach services from the host machine.
+      # Labs that expose services via NodePort use ports in this range.
+      - containerPort: 30000
+        hostPort: 30000
+        protocol: TCP
+      - containerPort: 30001
+        hostPort: 30001
+        protocol: TCP
+      - containerPort: 30002
+        hostPort: 30002
+        protocol: TCP
+  - role: worker
+    image: kindest/node:v1.31.4
+    labels:
+      # Simulated GPU label — later labs use this for scheduling decisions.
+      node.kubernetes.io/gpu-type: simulated
+      # Topology zone — used by labs that demonstrate zone-aware placement.
+      topology.kubernetes.io/zone: zone-a
+  - role: worker
+    image: kindest/node:v1.31.4
+    labels:
+      node.kubernetes.io/gpu-type: simulated
+      topology.kubernetes.io/zone: zone-b

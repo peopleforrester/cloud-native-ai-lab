@@ -1,0 +1,21 @@
+# ABOUTME: ClusterQueue for team-a with 4 CPU and 8Gi memory quota.
+# ABOUTME: Supports preemption so high-priority workloads can evict lower ones.
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: team-a-cq
+spec:
+  # Only admit workloads that reference a LocalQueue pointing to this ClusterQueue.
+  namespaceSelector: {}
+  preemption:
+    reclaimWithinCohort: Any
+    withinClusterQueue: LowerPriority
+  resourceGroups:
+    - coveredResources: ["cpu", "memory"]
+      flavors:
+        - name: default-cpu
+          resources:
+            - name: cpu
+              nominalQuota: "4"
+            - name: memory
+              nominalQuota: 8Gi

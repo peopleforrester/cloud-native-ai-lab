@@ -1,0 +1,24 @@
+# ABOUTME: DeviceClass defining a simulated GPU device type for DRA.
+# ABOUTME: In production, a real GPU driver publishes these attributes automatically.
+apiVersion: resource.k8s.io/v1beta1
+kind: DeviceClass
+metadata:
+  name: simulated-gpu
+spec:
+  # Selectors filter which devices belong to this class.
+  # The DRA resource driver publishes attributes for each device it manages.
+  # The scheduler evaluates these selectors to match devices to claims.
+  selectors:
+    - cel:
+        # Match devices where the "type" attribute equals "gpu".
+        # In production with NVIDIA drivers, you might match on:
+        #   device.attributes["gpu.nvidia.com/family"] == "ampere"
+        expression: "device.attributes[\"type\"] == \"gpu\""
+  # suitableNodes constrains which nodes can satisfy claims for this class.
+  # Omitted here — any node with the driver installed can provide devices.
+  # In production, you might add a node selector like:
+  #   suitableNodes:
+  #     nodeSelectorTerms:
+  #       - matchExpressions:
+  #           - key: node.kubernetes.io/gpu-type
+  #             operator: Exists

@@ -1,0 +1,50 @@
+# ABOUTME: MCPServer CRD defining a tool source that exposes Kubernetes operations via MCP.
+# ABOUTME: The agent discovers available tools from this server at runtime using MCP protocol.
+
+apiVersion: kagent.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: kubernetes-tools
+  namespace: agents
+spec:
+  # description helps agents and humans understand what tools this server provides.
+  description: "MCP server providing Kubernetes cluster inspection and management tools."
+
+  # transport defines how the agent communicates with this MCP server.
+  # - stdio: The MCP server runs as a subprocess (co-located with the agent).
+  #   Good for local development and simple setups.
+  # - sse: The MCP server runs as a separate service, communicating over
+  #   Server-Sent Events (HTTP streaming). Better for production — allows
+  #   the MCP server to scale independently.
+  transport: stdio
+
+  # image is the container image for the MCP server.
+  # This image must implement the MCP protocol and expose tools
+  # through the standard handshake mechanism.
+  image: ghcr.io/kagent-dev/kubernetes-mcp-server:latest
+
+  # args are command-line arguments passed to the MCP server container.
+  args:
+    - "--transport=stdio"
+
+  # env sets environment variables for the MCP server container.
+  # Use these for configuration that does not contain secrets.
+  env:
+    - name: KUBECONFIG
+      value: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+  # tools lists the specific tools this MCP server exposes.
+  # When omitted, all tools from the server are available.
+  # Listing them explicitly provides documentation and allows
+  # fine-grained access control.
+  tools:
+    - name: get_pods
+      description: "List pods in a namespace with their status"
+    - name: get_events
+      description: "Get recent events for a namespace or resource"
+    - name: get_logs
+      description: "Retrieve logs from a specific pod"
+    - name: describe_resource
+      description: "Get detailed information about any Kubernetes resource"
+    - name: get_nodes
+      description: "List cluster nodes with capacity and allocatable resources"

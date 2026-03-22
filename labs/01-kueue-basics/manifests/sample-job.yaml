@@ -1,0 +1,37 @@
+# ABOUTME: Sample Kubernetes Job that Kueue manages via queue-name label.
+# ABOUTME: Simulates a workload using busybox sleep for demonstration purposes.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: sample-job-
+  labels:
+    # This label tells Kueue which LocalQueue should manage this job.
+    # Kueue intercepts jobs with this label and holds them until admitted.
+    kueue.x-k8s.io/queue-name: team-a-lq
+spec:
+  parallelism: 1
+  completions: 1
+  # Kueue sets suspend to false when it admits the job.
+  # Submit the job with suspend: true so Kueue controls when it starts.
+  suspend: true
+  template:
+    spec:
+      containers:
+        - name: worker
+          image: busybox:1.36
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "Job started at $(date)"
+              echo "Simulating work for 30 seconds..."
+              sleep 30
+              echo "Job completed at $(date)"
+          resources:
+            requests:
+              cpu: "1"
+              memory: 1Gi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      restartPolicy: Never
+  backoffLimit: 0

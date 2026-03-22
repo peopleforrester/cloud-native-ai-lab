@@ -1,0 +1,10 @@
+# ABOUTME: ResourceFlavor defining a default CPU resource type for Kueue.
+# ABOUTME: Used by ClusterQueues to describe the kind of compute available.
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ResourceFlavor
+metadata:
+  name: default-cpu
+# No nodeLabels or taints — this flavor matches any node in the cluster.
+# In production, you might add nodeLabels like:
+#   nodeLabels:
+#     node.kubernetes.io/instance-type: m5.xlarge

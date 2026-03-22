@@ -1,0 +1,54 @@
+# ABOUTME: JobSet integrated with Kueue for admission-controlled distributed training.
+# ABOUTME: Starts suspended; Kueue admits it only when full capacity is available.
+apiVersion: jobset.x-k8s.io/v1alpha2
+kind: JobSet
+metadata:
+  name: training-with-kueue
+  labels:
+    # This label tells Kueue which LocalQueue manages this JobSet.
+    # Kueue watches for suspended JobSets with this label and evaluates
+    # them against the ClusterQueue's resource budget.
+    kueue.x-k8s.io/queue-name: team-a-lq
+spec:
+  # suspend: true is critical for Kueue integration.
+  # Kueue sets this to false when it admits the workload.
+  # Without this, the JobSet would start immediately, bypassing Kueue.
+  suspend: true
+
+  failurePolicy:
+    maxRestarts: 1
+
+  replicatedJobs:
+    - name: workers
+      replicas: 2
+      template:
+        spec:
+          parallelism: 1
+          completions: 1
+          backoffLimit: 0
+          # suspend at the Job level must also be true for Kueue to work.
+          # Kueue unsuspends both the JobSet and its child Jobs upon admission.
+          suspend: true
+          template:
+            spec:
+              containers:
+                - name: worker
+                  image: busybox:1.36
+                  command: ["sh", "-c"]
+                  args:
+                    - |
+                      WORKER_INDEX=${JOB_COMPLETION_INDEX:-0}
+                      echo "Worker ${WORKER_INDEX} starting (Kueue-managed)"
+                      echo "Hostname: $(hostname)"
+                      echo "This job was admitted by Kueue from team-a's queue"
+                      echo "Simulating training work..."
+                      sleep 30
+                      echo "Worker ${WORKER_INDEX} training complete"
+                  resources:
+                    requests:
+                      cpu: "500m"
+                      memory: 512Mi
+                    limits:
+                      cpu: "1"
+                      memory: 1Gi
+              restartPolicy: Never

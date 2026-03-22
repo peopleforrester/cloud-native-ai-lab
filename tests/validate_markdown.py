@@ -29,11 +29,16 @@ def test_markdown_files_have_h1(all_markdown_files: list[Path]) -> None:
     assert not missing_h1, "Markdown files missing H1 heading:\n" + "\n".join(missing_h1)
 
 
+def _strip_code_blocks(content: str) -> str:
+    """Remove fenced code blocks from markdown content."""
+    return re.sub(r"```[^`]*```", "", content, flags=re.DOTALL)
+
+
 def test_no_broken_heading_hierarchy(all_markdown_files: list[Path]) -> None:
     """Headings should not skip levels (e.g., H1 directly to H3)."""
     issues = []
     for md_file in all_markdown_files:
-        content = md_file.read_text()
+        content = _strip_code_blocks(md_file.read_text())
         headings = re.findall(r"^(#{1,6}) ", content, re.MULTILINE)
         if not headings:
             continue

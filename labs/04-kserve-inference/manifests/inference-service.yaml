@@ -1,0 +1,25 @@
+# ABOUTME: KServe InferenceService for sklearn iris classifier.
+# ABOUTME: Uses KServe's official example model — runs on CPU, no GPU required.
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: sklearn-iris
+  namespace: inference
+spec:
+  predictor:
+    # The sklearn predictor type tells KServe to use the sklearn model server.
+    # KServe automatically selects the correct serving image for the framework.
+    model:
+      modelFormat:
+        name: sklearn
+      # This is KServe's official example iris model stored in a public GCS bucket.
+      # The model is a pickled scikit-learn classifier trained on the iris dataset.
+      # No credentials are needed — the bucket is publicly readable.
+      storageUri: "gs://kfserving-examples/models/sklearn/1.0/model"
+      resources:
+        requests:
+          cpu: "100m"
+          memory: "256Mi"
+        limits:
+          cpu: "500m"
+          memory: "512Mi"
