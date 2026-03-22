@@ -1,6 +1,6 @@
 # ABOUTME: ResourceClaim requesting a single GPU device from the simulated-gpu class.
 # ABOUTME: Demonstrates how pods declare fine-grained device requirements via DRA.
-apiVersion: resource.k8s.io/v1beta1
+apiVersion: resource.k8s.io/v1
 kind: ResourceClaim
 metadata:
   name: gpu-claim
@@ -9,25 +9,13 @@ spec:
     # Each request in the list describes one device the pod needs.
     requests:
       - name: gpu-request
-        deviceClassName: simulated-gpu
-        # selectors add constraints beyond what the DeviceClass defines.
-        # For example, you could require a minimum memory size:
-        #   selectors:
-        #     - cel:
-        #         expression: "device.attributes[\"memory\"] >= 40"
-        #
-        # Without additional selectors, any device matching the DeviceClass
-        # satisfies this request.
-
-    # You can add multiple requests for multi-device workloads:
-    #   - name: second-gpu
-    #     deviceClassName: simulated-gpu
-    #     selectors:
-    #       - cel:
-    #           expression: "device.attributes[\"memory\"] >= 80"
-
-    # constraints let you express cross-device requirements:
-    # constraints:
-    #   - requests: ["gpu-request", "second-gpu"]
-    #     matchAttribute: "device.attributes[\"numa-node\"]"
-    #     # Both GPUs must be on the same NUMA node for optimal performance.
+        exactly:
+          deviceClassName: simulated-gpu
+          # selectors add constraints beyond what the DeviceClass defines.
+          # For example, you could require specific attributes:
+          #   selectors:
+          #     - cel:
+          #         expression: 'device.attributes["nvidia.com"].memoryMiB >= 40960'
+          #
+          # Without additional selectors, any device matching the DeviceClass
+          # satisfies this request.

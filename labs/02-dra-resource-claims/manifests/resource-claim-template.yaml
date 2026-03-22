@@ -1,6 +1,6 @@
 # ABOUTME: ResourceClaimTemplate that creates per-pod GPU claims dynamically.
 # ABOUTME: Used with Deployments or Jobs so each replica gets its own device.
-apiVersion: resource.k8s.io/v1beta1
+apiVersion: resource.k8s.io/v1
 kind: ResourceClaimTemplate
 metadata:
   name: gpu-claim-template
@@ -19,7 +19,8 @@ spec:
     devices:
       requests:
         - name: gpu-request
-          deviceClassName: simulated-gpu
-          # Each pod gets one GPU from the simulated-gpu class.
-          # The scheduler allocates a different device for each pod,
-          # ensuring no two pods share the same GPU.
+          exactly:
+            deviceClassName: simulated-gpu
+            # Each pod gets one GPU from the simulated-gpu class.
+            # The scheduler allocates a different device for each pod,
+            # ensuring no two pods share the same GPU.

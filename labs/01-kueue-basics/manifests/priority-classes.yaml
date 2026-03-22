@@ -1,0 +1,17 @@
+# ABOUTME: PriorityClasses for demonstrating Kueue preemption behavior.
+# ABOUTME: Apply once before submitting priority-job.yaml.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: high-priority
+value: 1000
+globalDefault: false
+description: "High priority class for urgent workloads"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: low-priority
+value: 100
+globalDefault: false
+description: "Low priority class for batch workloads"

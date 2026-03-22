@@ -139,11 +139,11 @@ kubectl apply -f manifests/sample-job.yaml -n team-b-ns
 
 ### Step 6: Submit a high-priority job to demonstrate preemption
 
-First, fill team-a's queue by submitting multiple jobs. Then submit a
-high-priority job that triggers preemption:
+First, create the PriorityClasses, then submit a high-priority job:
 
 ```bash
-kubectl apply -f manifests/priority-job.yaml -n team-a-ns
+kubectl apply -f manifests/priority-classes.yaml
+kubectl create -f manifests/priority-job.yaml -n team-a-ns
 ```
 
 Watch the workloads to see preemption in action:
