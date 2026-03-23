@@ -34,7 +34,7 @@ providing enough capacity to run inference workloads.
 
 Examine `eksctl-config.yaml` in this directory. Key settings:
 
-- **Region**: us-east-1 (best GPU instance availability; change if needed)
+- **Region**: us-west-2 (good GPU instance availability; change in `eksctl-config.yaml` if needed)
 - **Node type**: g5.xlarge (1x A10G GPU, 4 vCPUs, 16 GB RAM)
 - **Scaling**: 1 node minimum, 2 nodes maximum
 - **EBS storage**: 100 GB gp3 per node (models need disk space)
@@ -47,6 +47,15 @@ eksctl create cluster -f eksctl-config.yaml
 
 This takes 15-20 minutes. eksctl will create the VPC, subnets, EKS control
 plane, and managed node group.
+
+Enable auto-upgrade so the cluster stays on the latest Kubernetes version:
+
+```bash
+aws eks update-cluster-config \
+  --name kubecon-gpu-lab \
+  --region us-west-2 \
+  --upgrade-policy supportType=EXTENDED,autoUpgrade=true
+```
 
 Verify the cluster is ready:
 
