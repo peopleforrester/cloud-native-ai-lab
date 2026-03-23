@@ -7,7 +7,14 @@ kind: ClusterConfig
 metadata:
   name: kubecon-gpu-lab
   region: us-east-1
-  version: "1.31"
+  version: "1.35"
+
+# Auto-upgrade the cluster when new Kubernetes versions are released.
+kubernetesNetworkConfig:
+  ipFamily: IPv4
+
+upgradePolicy:
+  autoUpgrade: true
 
 # IAM OIDC provider is required for service account IAM roles
 # and the EBS CSI driver addon.
