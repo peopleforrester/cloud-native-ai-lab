@@ -76,7 +76,11 @@ kubectl wait --for=condition=Available deployment --all \
   -n knative-serving --timeout=120s
 ```
 
-Now install KServe (CRDs first, then the controller):
+Now install KServe. This lab uses v0.14.1, which has stable `kubectl apply`
+support for kind clusters. The latest version is v0.17.0 (see the
+[KServe one-pager](../../docs/projects/kserve.md)), but v0.14.1 is more
+reliable for local development because its CRD annotations fit within
+`kubectl apply` size limits without requiring `--server-side`:
 
 ```bash
 kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.14.1/kserve.yaml

@@ -131,10 +131,10 @@ Check the ClusterQueue usage — Kueue tracks admitted workloads:
 kubectl get clusterqueue team-a-cq -o yaml | grep -A 10 "flavorsUsage"
 ```
 
-Submit the same job to team-b's queue to see both teams running concurrently:
+Submit a job to team-b's queue to see both teams running concurrently:
 
 ```bash
-kubectl apply -f manifests/sample-job.yaml -n team-b-ns
+kubectl create -f manifests/sample-job-b.yaml -n team-b-ns
 ```
 
 ### Step 6: Submit a high-priority job to demonstrate preemption

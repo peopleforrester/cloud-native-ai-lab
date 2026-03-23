@@ -65,7 +65,7 @@ Full reports:
 
 ## Prerequisites
 
-- [kind](https://kind.sigs.k8s.io/) v0.20+
+- [kind](https://kind.sigs.k8s.io/) v0.27+
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Helm](https://helm.sh/docs/intro/install/) 3.x
 - ~8GB RAM for the kind cluster

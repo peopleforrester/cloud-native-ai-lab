@@ -60,7 +60,6 @@ On **March 9, 2026**, a new **AI Gateway Working Group** was formally announced 
 
 Commercial solutions have also matured. Kong offers 20+ LLM provider integrations with AI-specific plugins for prompt guarding and token rate limiting. Apache APISIX positions itself as "cloud-native to AI-native" with multi-LLM load balancing. Traefik Hub defines AIService CRDs. The common feature set across all solutions includes token-based rate limiting, multi-provider routing, prompt security and PII detection, semantic caching, and streaming-aware load balancing.
 
-Regarding "AI Gable" — exhaustive research found no project, initiative, or standard by this name in the CNCF or cloud-native ecosystem. This is almost certainly a misspelling or mishearing of "AI Gateway."
 
 ---
 

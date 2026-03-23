@@ -1,0 +1,33 @@
+# ABOUTME: Sample Job targeting team-b's LocalQueue for fair sharing demonstration.
+# ABOUTME: Identical to sample-job.yaml except it routes to team-b-lq.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: sample-job-b-
+  labels:
+    kueue.x-k8s.io/queue-name: team-b-lq
+spec:
+  parallelism: 1
+  completions: 1
+  suspend: true
+  template:
+    spec:
+      containers:
+        - name: worker
+          image: busybox:1.36
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "Team-B job started at $(date)"
+              echo "Simulating work for 30 seconds..."
+              sleep 30
+              echo "Team-B job completed at $(date)"
+          resources:
+            requests:
+              cpu: "1"
+              memory: 1Gi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      restartPolicy: Never
+  backoffLimit: 0

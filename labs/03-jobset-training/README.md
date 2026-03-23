@@ -131,8 +131,8 @@ kubectl describe jobset training-sim | tail -20
 
 ### Step 5: Create a JobSet with Kueue integration
 
-This step requires Kueue from Lab 01 to be installed. If you skipped Lab 01,
-return to it first.
+This step requires Kueue to be installed. If you skipped Lab 01 or ran its
+cleanup section, re-run Lab 01 Step 1 to reinstall Kueue before continuing.
 
 Deploy a JobSet that uses Kueue for admission control:
 
