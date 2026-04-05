@@ -111,7 +111,7 @@ info "kubectl configured."
 
 # --- Step 5: Install NVIDIA device plugin ---
 info "[Step 5/5] Installing NVIDIA device plugin..."
-kubectl apply -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v0.17.0/deployments/static/nvidia-device-plugin.yml
+kubectl apply -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v0.17.1/deployments/static/nvidia-device-plugin.yml
 info "NVIDIA device plugin installed."
 
 # Wait for the device plugin to be ready

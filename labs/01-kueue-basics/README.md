@@ -58,7 +58,7 @@ Install Kueue into the cluster using the official OCI Helm chart:
 
 ```bash
 helm install kueue oci://registry.k8s.io/kueue/charts/kueue \
-  --version 0.16.4 \
+  --version 0.17.0 \
   -n kueue-system \
   --create-namespace \
   --wait --timeout 5m

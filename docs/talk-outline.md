@@ -59,7 +59,7 @@ This is the part that looks complicated until you realize it's just four things 
 
 **1. DRA** — handles device allocation. "Give me GPUs with these specific attributes." You just learned this one.
 
-**2. Kueue** — handles queuing and admission control. Think of it as a traffic controller for GPU jobs. It decides who gets to run, when, and with what share of the cluster. It knows about topology too — it can place your workload near the right GPU interconnects. CNCF Incubating project, version 0.16.4.
+**2. Kueue** — handles queuing and admission control. Think of it as a traffic controller for GPU jobs. It decides who gets to run, when, and with what share of the cluster. It knows about topology too — it can place your workload near the right GPU interconnects. CNCF Incubating project, version 0.17.0.
 
 **3. JobSet** — handles distributed training. If you're training a model across multiple nodes, JobSet coordinates all the pieces and handles failures. If one pod dies, it knows what to do with the rest. Version 0.11.1.
 

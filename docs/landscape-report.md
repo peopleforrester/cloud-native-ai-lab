@@ -14,7 +14,7 @@ Kubernetes 1.35 "Timbernetes" (released December 17, 2025) marked a turning poin
 
 **Gang Scheduling and Workload-Aware Scheduling entered alpha**, bringing all-or-nothing pod placement directly into the Kubernetes scheduler for the first time. Previously available only through external schedulers like Kueue and Volcano, native gang scheduling ensures distributed training jobs either start all pods together or not at all, eliminating the partial-placement deadlocks that waste expensive GPU time.
 
-The scheduling stack has also matured into a coherent layered architecture. **Kueue** (now CNCF Incubating, v0.16.4) handles admission control, fair sharing, and topology-aware scheduling. **JobSet** (v0.11.1) orchestrates distributed training job groups with coordinated failure handling. **LeaderWorkerSet** (v0.8.0, stable API) manages long-running multi-host inference workloads where LLMs are sharded across nodes. Together with DRA for device allocation, these four components form the canonical Kubernetes AI platform stack that cloud providers and enterprises are converging on.
+The scheduling stack has also matured into a coherent layered architecture. **Kueue** (now CNCF Incubating, v0.17.0) handles admission control, fair sharing, and topology-aware scheduling. **JobSet** (v0.11.1) orchestrates distributed training job groups with coordinated failure handling. **LeaderWorkerSet** (v0.8.0, stable API) manages long-running multi-host inference workloads where LLMs are sharded across nodes. Together with DRA for device allocation, these four components form the canonical Kubernetes AI platform stack that cloud providers and enterprises are converging on.
 
 ---
 
