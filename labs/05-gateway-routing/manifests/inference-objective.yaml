@@ -1,7 +1,7 @@
 # ABOUTME: InferenceObjective maps a user-facing model name to backend models with priority.
 # ABOUTME: Renamed from InferenceModel at GA — use InferenceObjective for current versions.
 
-apiVersion: inference.networking.x-k8s.io/v1alpha2
+apiVersion: inference.networking.k8s.io/v1
 kind: InferenceObjective
 metadata:
   name: coding-model
@@ -29,7 +29,7 @@ spec:
   # poolRef points to the InferencePool that serves this objective.
   # All requests matching this objective are routed to pods in this pool.
   poolRef:
-    group: inference.networking.x-k8s.io
+    group: inference.networking.k8s.io
     kind: InferencePool
     name: llm-pool
 

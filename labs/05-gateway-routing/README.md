@@ -81,7 +81,21 @@ Client Request (with model name in body)
 Without this extension, the gateway would round-robin across all pods — even pods
 that do not have the requested model loaded. With it, routing is intelligent.
 
-### Step 2: Examine the InferencePool manifest
+### Step 2: Create the namespace and Gateway
+
+Open `manifests/gateway.yaml`. This manifest creates the `inference-demo`
+namespace, a standard Gateway API Gateway, and an HTTPRoute that references the
+InferencePool as a backend. The inference extension hooks into the gateway's
+request processing pipeline.
+
+Apply it first — the namespace must exist before we can create pool and
+objective resources:
+
+```bash
+kubectl apply -f manifests/gateway.yaml
+```
+
+### Step 3: Examine the InferencePool manifest
 
 Open `manifests/inference-pool.yaml` and read the comments. The key fields are:
 
@@ -104,7 +118,7 @@ kubectl get inferencepool -n inference-demo
 kubectl describe inferencepool llm-pool -n inference-demo
 ```
 
-### Step 3: Examine the InferenceObjective manifest
+### Step 4: Examine the InferenceObjective manifest
 
 > **Important:** This CRD was renamed from `InferenceModel` to
 > `InferenceObjective` at GA. If you see older tutorials or blog posts
@@ -129,18 +143,6 @@ Inspect the resource:
 ```bash
 kubectl get inferenceobjective -n inference-demo
 kubectl describe inferenceobjective coding-model -n inference-demo
-```
-
-### Step 4: Examine the Gateway manifest
-
-Open `manifests/gateway.yaml`. This is a standard Gateway API Gateway with an
-HTTPRoute that references the InferencePool as a backend. The inference extension
-hooks into the gateway's request processing pipeline.
-
-Apply it:
-
-```bash
-kubectl apply -f manifests/gateway.yaml
 ```
 
 ### Step 5: Understand routing decisions

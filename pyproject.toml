@@ -1,5 +1,19 @@
+[project]
+name = "cloud-native-ai-lab"
+version = "0.1.0"
+requires-python = ">=3.11"
+description = "Hands-on lab for AI workloads on Kubernetes"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["validate_*.py", "test_*.py"]
 python_functions = ["test_*"]
 python_classes = ["Test*"]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.15",
+    "pytest>=9.0.2",
+    "pyyaml>=6.0.3",
+    "ruff>=0.11",
+]

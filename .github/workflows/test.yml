@@ -1,0 +1,19 @@
+# ABOUTME: CI pipeline that runs the full test suite on push and pull requests.
+# ABOUTME: Uses uv for dependency management and pytest for test execution.
+
+name: tests
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv python install
+      - run: uv sync --locked
+      - run: uv run pytest -v --tb=short

@@ -55,7 +55,7 @@ spec:
         # Reference the InferencePool instead of a regular Service.
         # The gateway treats this as a backend but delegates pod selection
         # to the inference extension's endpoint picker.
-        - group: inference.networking.x-k8s.io
+        - group: inference.networking.k8s.io
           kind: InferencePool
           name: llm-pool
           port: 8000
