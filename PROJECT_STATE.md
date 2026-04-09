@@ -1,31 +1,32 @@
-# Project State: Senior Review Remediation
+# Project State: Senior Review + Recency Remediation
 
 **Date:** 2026-04-06
-**Branch:** staging
-**Review Grade:** B+ → A (all items addressed)
-**Status:** Complete
+**Branch:** main (clean)
+**Status:** Complete — all items addressed across two commits
 
-## Action Plan (all done)
+## Commit 1: Senior Review Fixes (93c193d)
+- [x] `pyproject.toml` — added `[project]` section, ruff/mypy dev deps
+- [x] `.python-version` — pinned 3.12
+- [x] `uv.lock` — committed for reproducible builds
+- [x] `scripts/test.sh` — rewritten to use uv; removed `requirements-dev.txt`
+- [x] `CLAUDE.md` — fixed mypy target to `tests/`
+- [x] Gateway API Inference Extension → GA `inference.networking.k8s.io/v1`
+- [x] Lab 05 step ordering — namespace before pool/objective
+- [x] llm-d attribution — "Launched by Red Hat"
+- [x] AKS K8s version → 1.35
+- [x] GitHub Actions CI workflow added
 
-### Phase 1: Project Tooling
-- [x] Add `[project]` section to `pyproject.toml`
-- [x] Add `ruff` and `mypy` to dev dependencies
-- [x] Add `.python-version` file pinning 3.12
-- [x] Run `uv sync --dev` to generate `uv.lock`
+## Commit 2: April 2026 Recency Update (e38828c)
+- [x] Kueue: 0.16.4 → 0.17.0
+- [x] kind: v0.27.0 → v0.31.0
+- [x] NVIDIA device plugin: v0.17.0 → v0.17.1
+- [x] actions/checkout: v4 → v6
+- [x] astral-sh/setup-uv: v5 → v8.0.0
 
-### Phase 2: Fix CLAUDE.md and scripts
-- [x] Fix `mypy src/` → `mypy tests/` in CLAUDE.md
-- [x] Rewrite `scripts/test.sh` to use `uv run pytest`
-- [x] Remove legacy `requirements-dev.txt`
-
-### Phase 3: Content Fixes
-- [x] Update AKS K8s version from 1.31 to 1.35
-- [x] Fix llm-d attribution: "Launched by Red Hat" not "Co-built"
-- [x] Update Gateway API Inference Extension to GA API (`inference.networking.k8s.io/v1`)
-- [x] Fix Lab 05 step ordering: gateway (with namespace) applied before pool/objective
-
-### Phase 4: CI Pipeline
-- [x] Add `.github/workflows/test.yml`
-
-### Phase 5: Verify
-- [x] All 55 tests pass
+## Verified Current (no update needed)
+- KServe v0.17.0 — still latest
+- JobSet v0.11.1 — still latest
+- LeaderWorkerSet v0.8.0 — still latest
+- MCP spec 2025-11-25 — still current
+- CNCF survey stats (82% K8s prod, 66% gen AI) — verified accurate
+- kindest/node:v1.35.1 — exists on Docker Hub, valid
