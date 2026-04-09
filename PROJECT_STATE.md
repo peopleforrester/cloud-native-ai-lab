@@ -28,5 +28,5 @@
 - JobSet v0.11.1 — still latest
 - LeaderWorkerSet v0.8.0 — still latest
 - MCP spec 2025-11-25 — still current
-- CNCF survey stats (82% K8s prod, 66% gen AI) — verified accurate
+- CNCF survey stats verified: 82% K8s production use; of organizations already hosting generative AI models, 66% use Kubernetes
 - kindest/node:v1.35.1 — exists on Docker Hub, valid
