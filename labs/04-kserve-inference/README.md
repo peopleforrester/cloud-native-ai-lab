@@ -76,16 +76,24 @@ kubectl wait --for=condition=Available deployment --all \
   -n knative-serving --timeout=120s
 ```
 
-Now install KServe. This lab uses v0.14.1, which has stable `kubectl apply`
-support for kind clusters. The latest version is v0.17.0 (see the
-[KServe one-pager](../../docs/projects/kserve.md)), but v0.14.1 is more
-reliable for local development because its CRD annotations fit within
-`kubectl apply` size limits without requiring `--server-side`:
+Now install KServe. The current release is v0.17.0 (see the
+[KServe one-pager](../../docs/projects/kserve.md)). The recommended install
+uses `kubectl apply --server-side` because the CRD annotations exceed the
+client-side `kubectl apply` size limit:
 
 ```bash
-kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.14.1/kserve.yaml
-kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.14.1/kserve-cluster-resources.yaml
+kubectl apply --server-side -f https://github.com/kserve/kserve/releases/download/v0.17.0/kserve.yaml
+kubectl apply --server-side -f https://github.com/kserve/kserve/releases/download/v0.17.0/kserve-cluster-resources.yaml
 ```
+
+> **Older kubectl?** If your `kubectl` is too old for `--server-side`
+> (`kubectl` < 1.18), use v0.14.1, whose CRDs still fit the client-side
+> apply size limit:
+>
+> ```bash
+> kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.14.1/kserve.yaml
+> kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.14.1/kserve-cluster-resources.yaml
+> ```
 
 Wait for KServe to be ready:
 
@@ -253,9 +261,9 @@ kubectl delete -f manifests/inference-service.yaml
 # Delete the inference namespace
 kubectl delete namespace inference
 
-# Remove KServe
-kubectl delete -f https://github.com/kserve/kserve/releases/download/v0.14.1/kserve-cluster-resources.yaml
-kubectl delete -f https://github.com/kserve/kserve/releases/download/v0.14.1/kserve.yaml
+# Remove KServe (use the same version you installed; v0.17.0 shown here)
+kubectl delete -f https://github.com/kserve/kserve/releases/download/v0.17.0/kserve-cluster-resources.yaml
+kubectl delete -f https://github.com/kserve/kserve/releases/download/v0.17.0/kserve.yaml
 
 # Remove Knative networking (Kourier)
 kubectl delete -f https://github.com/knative-extensions/net-kourier/releases/download/knative-v1.21.0/kourier.yaml
