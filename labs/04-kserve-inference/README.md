@@ -50,14 +50,14 @@ KServe requires Knative Serving and a networking layer. Install them in order.
 First, install the Knative Serving CRDs and core components:
 
 ```bash
-kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.17.0/serving-crds.yaml
-kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.17.0/serving-core.yaml
+kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.21.2/serving-crds.yaml
+kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.21.2/serving-core.yaml
 ```
 
 Install the Knative networking layer (Kourier — lightweight, good for kind):
 
 ```bash
-kubectl apply -f https://github.com/knative/net-kourier/releases/download/knative-v1.17.0/kourier.yaml
+kubectl apply -f https://github.com/knative-extensions/net-kourier/releases/download/knative-v1.21.0/kourier.yaml
 ```
 
 Configure Knative to use Kourier:
@@ -258,11 +258,11 @@ kubectl delete -f https://github.com/kserve/kserve/releases/download/v0.14.1/kse
 kubectl delete -f https://github.com/kserve/kserve/releases/download/v0.14.1/kserve.yaml
 
 # Remove Knative networking (Kourier)
-kubectl delete -f https://github.com/knative/net-kourier/releases/download/knative-v1.17.0/kourier.yaml
+kubectl delete -f https://github.com/knative-extensions/net-kourier/releases/download/knative-v1.21.0/kourier.yaml
 
 # Remove Knative Serving
-kubectl delete -f https://github.com/knative/serving/releases/download/knative-v1.17.0/serving-core.yaml
-kubectl delete -f https://github.com/knative/serving/releases/download/knative-v1.17.0/serving-crds.yaml
+kubectl delete -f https://github.com/knative/serving/releases/download/knative-v1.21.2/serving-core.yaml
+kubectl delete -f https://github.com/knative/serving/releases/download/knative-v1.21.2/serving-crds.yaml
 ```
 
 ## Next step

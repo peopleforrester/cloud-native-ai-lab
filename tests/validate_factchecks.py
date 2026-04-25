@@ -173,6 +173,34 @@ class TestGenAIStatQualifier:
                         )
 
 
+class TestKnativeVersion:
+    """Lab 04 must reference a current Knative Serving release, not the stale 1.17.0."""
+
+    def test_no_stale_knative_117(self, repo_root: Path) -> None:
+        """`knative-v1.17.0` must not appear in any final content file."""
+        for md_file, content in _read_content_files(repo_root):
+            rel = str(md_file.relative_to(repo_root))
+            if "compass_artifact" in rel or "improvement-plan" in rel:
+                continue
+            for i, line in enumerate(content.split("\n"), 1):
+                if "knative-v1.17.0" in line:
+                    pytest.fail(
+                        f"{rel}:{i} references stale knative-v1.17.0 (released Oct 2024). "
+                        f"Update to a current 1.21+ release."
+                    )
+
+    def test_kserve_lab_uses_current_knative(self, repo_root: Path) -> None:
+        """Lab 04 README must reference Knative >= 1.21."""
+        lab_readme = repo_root / "labs" / "04-kserve-inference" / "README.md"
+        content = lab_readme.read_text()
+        match = re.search(r"knative-v1\.(\d+)\.\d+", content)
+        assert match, "Lab 04 README missing a knative-v1.X.Y version reference"
+        minor = int(match.group(1))
+        assert minor >= 21, (
+            f"Lab 04 references knative-v1.{minor} — must be >= 1.21 (current stable)"
+        )
+
+
 class TestLlmdAttribution:
     """llm-d must be attributed as launched by Red Hat, not co-created equally."""
 
