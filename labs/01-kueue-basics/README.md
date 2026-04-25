@@ -105,8 +105,7 @@ LocalQueues live in a namespace and point to a ClusterQueue. Users submit jobs
 to LocalQueues — they never interact with ClusterQueues directly:
 
 ```bash
-kubectl create namespace team-a-ns
-kubectl create namespace team-b-ns
+kubectl apply -f manifests/namespaces.yaml
 kubectl apply -f manifests/local-queue-a.yaml
 kubectl apply -f manifests/local-queue-b.yaml
 ```

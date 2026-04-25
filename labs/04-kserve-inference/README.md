@@ -105,7 +105,7 @@ kubectl wait --for=condition=Available deployment/kserve-controller-manager \
 ### Step 2: Create a namespace for inference workloads
 
 ```bash
-kubectl create namespace inference
+kubectl apply -f manifests/namespace.yaml
 ```
 
 ### Step 3: Deploy the sklearn InferenceService

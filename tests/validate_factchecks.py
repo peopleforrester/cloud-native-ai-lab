@@ -173,6 +173,29 @@ class TestGenAIStatQualifier:
                         )
 
 
+class TestDeclarativeNamespaces:
+    """Lab READMEs should use declarative `kubectl apply -f` for namespaces,
+    matching the rest of each lab's manifest-driven style."""
+
+    def test_no_imperative_namespace_creation(self, repo_root: Path) -> None:
+        """`kubectl create namespace` is forbidden in main lab READMEs."""
+        forbidden_files = [
+            repo_root / "labs" / "01-kueue-basics" / "README.md",
+            repo_root / "labs" / "04-kserve-inference" / "README.md",
+            repo_root / "labs" / "06-kagent-mcp" / "README.md",
+        ]
+        bad: list[str] = []
+        for path in forbidden_files:
+            content = path.read_text()
+            for i, line in enumerate(content.split("\n"), 1):
+                if "kubectl create namespace" in line:
+                    rel = path.relative_to(repo_root)
+                    bad.append(f"{rel}:{i}: {line.strip()}")
+        assert not bad, (
+            "Use `kubectl apply -f` for namespaces, not imperative create:\n" + "\n".join(bad)
+        )
+
+
 class TestDRADriverPath:
     """Lab 02 Part B must reference the canonical kubernetes-sigs/dra-example-driver,
     not the non-existent kubernetes/test/e2e/dra/test-driver path."""
