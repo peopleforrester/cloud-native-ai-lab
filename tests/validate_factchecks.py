@@ -173,6 +173,33 @@ class TestGenAIStatQualifier:
                         )
 
 
+class TestDRADriverPath:
+    """Lab 02 Part B must reference the canonical kubernetes-sigs/dra-example-driver,
+    not the non-existent kubernetes/test/e2e/dra/test-driver path."""
+
+    def test_no_stale_dra_test_driver_path(self, repo_root: Path) -> None:
+        """`kubernetes/test/e2e/dra/test-driver` must not appear in any final content."""
+        for md_file, content in _read_content_files(repo_root):
+            rel = str(md_file.relative_to(repo_root))
+            if "compass_artifact" in rel or "improvement-plan" in rel:
+                continue
+            for i, line in enumerate(content.split("\n"), 1):
+                if "kubernetes/test/e2e/dra/test-driver" in line:
+                    pytest.fail(
+                        f"{rel}:{i} references the non-existent "
+                        f"`kubernetes/test/e2e/dra/test-driver` path. "
+                        f"Use `kubernetes-sigs/dra-example-driver` instead."
+                    )
+
+    def test_dra_lab_uses_kubernetes_sigs_repo(self, repo_root: Path) -> None:
+        """Lab 02 README must point at github.com/kubernetes-sigs/dra-example-driver."""
+        lab_readme = repo_root / "labs" / "02-dra-resource-claims" / "README.md"
+        content = lab_readme.read_text()
+        assert "kubernetes-sigs/dra-example-driver" in content, (
+            "Lab 02 README must reference the canonical kubernetes-sigs/dra-example-driver repo"
+        )
+
+
 class TestKServeVersion:
     """Lab 04 must offer KServe v0.17.0 with --server-side as the recommended path."""
 
