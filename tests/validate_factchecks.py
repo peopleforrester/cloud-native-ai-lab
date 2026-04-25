@@ -32,14 +32,18 @@ class TestJobSetVersion:
                     lower_line = line.lower()
                     correction_context = any(
                         word in lower_line
-                        for word in ["not v0.10.1", "incorrect", "corrected",
-                                     "should be", "was v0.10.1"]
+                        for word in [
+                            "not v0.10.1",
+                            "incorrect",
+                            "corrected",
+                            "should be",
+                            "was v0.10.1",
+                        ]
                     )
                     if not correction_context:
                         rel = md_file.relative_to(repo_root)
                         pytest.fail(
-                            f"{rel} contains incorrect JobSet version v0.10.1 "
-                            f"(should be v0.11.1)"
+                            f"{rel} contains incorrect JobSet version v0.10.1 (should be v0.11.1)"
                         )
 
     def test_correct_jobset_version_exists(self, repo_root: Path) -> None:
@@ -63,14 +67,12 @@ class TestMCPServerCount:
                     lower_line = line.lower()
                     correction_context = any(
                         word in lower_line
-                        for word in ["not 6,400", "not 6400", "incorrect",
-                                     "corrected", "should be"]
+                        for word in ["not 6,400", "not 6400", "incorrect", "corrected", "should be"]
                     )
                     if not correction_context:
                         rel = md_file.relative_to(repo_root)
                         pytest.fail(
-                            f"{rel} contains incorrect MCP server count 6,400 "
-                            f"(should be 10,000+)"
+                            f"{rel} contains incorrect MCP server count 6,400 (should be 10,000+)"
                         )
 
     def test_correct_mcp_count_exists(self, repo_root: Path) -> None:
@@ -107,9 +109,18 @@ class TestInferenceObjective:
                     context_block = " ".join(lines[start:end]).lower()
                     rename_context = any(
                         word in context_block
-                        for word in ["renamed", "was renamed", "previously", "formerly",
-                                     "migration", "replaced", "old name",
-                                     "not inferencemodel", "pre-ga", "pre_ga"]
+                        for word in [
+                            "renamed",
+                            "was renamed",
+                            "previously",
+                            "formerly",
+                            "migration",
+                            "replaced",
+                            "old name",
+                            "not inferencemodel",
+                            "pre-ga",
+                            "pre_ga",
+                        ]
                     )
                     if not rename_context:
                         pytest.fail(

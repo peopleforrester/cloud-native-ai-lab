@@ -5,8 +5,6 @@ import re
 from pathlib import Path
 from urllib.parse import unquote
 
-import pytest
-
 
 def test_internal_links_resolve(all_markdown_files: list[Path], repo_root: Path) -> None:
     """All relative markdown links should point to files that exist."""

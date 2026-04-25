@@ -16,4 +16,14 @@ dev = [
     "pytest>=9.0.2",
     "pyyaml>=6.0.3",
     "ruff>=0.11",
+    "types-PyYAML>=6.0",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+strict = false
+ignore_missing_imports = false
