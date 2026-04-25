@@ -198,6 +198,25 @@ In a real cluster with GPUs, you would add `nvidia.com/gpu` to the
 ClusterQueue resource groups and create ResourceFlavors for different GPU
 types. The queueing and preemption mechanics work exactly the same way.
 
+### Aside: workload hardening
+
+Open `manifests/sample-job.yaml` and look at the `securityContext` blocks.
+They are not strictly required for Kueue to admit the job, but they are the
+production-grade pattern every batch workload should adopt:
+
+- `runAsNonRoot: true` and `runAsUser: 65534` — refuse to run the container
+  as root. Most base images run as root by default; this block opts out.
+- `seccompProfile.type: RuntimeDefault` — apply the container runtime's
+  default syscall filter, which blocks rarely-used kernel surfaces.
+- `readOnlyRootFilesystem: true` — make the root filesystem immutable.
+  Anything that needs to write must mount an explicit emptyDir or PVC.
+- `capabilities.drop: ["ALL"]` and `allowPrivilegeEscalation: false` — drop
+  every Linux capability and forbid `setuid`/`setgid` privilege gain.
+
+This is the baseline for the "restricted" Pod Security Standard. When you
+move to GPU workloads in later labs, copy the pattern — the only difference
+is which capabilities or paths the workload actually needs.
+
 ## Clean up
 
 Remove all lab resources:
