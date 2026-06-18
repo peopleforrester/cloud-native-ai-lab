@@ -63,7 +63,10 @@ def test_actions_pinned_to_commit_sha(repo_root: Path) -> None:
         for line in raw.splitlines()
         if line.strip().lstrip("-").strip().startswith("uses:")
     ]
+    # Only third-party actions need SHA pinning. Local actions (`uses: ./...`)
+    # are checked out with the repo and carry no supply-chain risk.
+    third_party = [line for line in uses_lines if not re.match(r"^uses:\s+\./", line)]
     sha_pattern = re.compile(r"^uses:\s+\S+@[0-9a-f]{40}\b")
 
-    bad = [line for line in uses_lines if not sha_pattern.match(line)]
+    bad = [line for line in third_party if not sha_pattern.match(line)]
     assert not bad, "Actions must be pinned to 40-char commit SHAs:\n" + "\n".join(bad)

@@ -9,7 +9,15 @@ import pytest
 
 def _read_content_files(repo_root: Path) -> list[tuple[Path, str]]:
     """Read all final content markdown files (excluding source originals and tests)."""
-    excluded_patterns = ["compass_artifact", "node_modules", "__pycache__", ".git/"]
+    # claude-ai-context/ is a local-only imported research archive (gitignored,
+    # never published) that intentionally preserves pre-correction source facts.
+    excluded_patterns = [
+        "compass_artifact",
+        "claude-ai-context",
+        "node_modules",
+        "__pycache__",
+        ".git/",
+    ]
     results = []
     for md_file in repo_root.rglob("*.md"):
         rel = str(md_file.relative_to(repo_root))
