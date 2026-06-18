@@ -1,73 +1,88 @@
-# Project State: 2026-04 Senior Review Follow-up
+# Project State: 2026-06 Version-Drift Refresh + PR #2 Review Cleanup
 
-**Date:** 2026-04-26
-**Branch:** staging (clean, ahead of main)
+**Date:** 2026-06-18
+**Branch:** staging (ahead of main; PR #2 open: staging → main)
 **Plan:** [docs/improvement-plan.md](docs/improvement-plan.md)
-**Verification method:** TDD — every phase wrote a failing test first, fixed
-the code, ran the full test suite, then committed. URLs were verified with
-`curl -I` against GitHub releases. No live cluster verification was performed
-(no kind cluster available); manifests are syntactically valid and behavioral
-assertions remain unverified against a running cluster.
+**Verification method:** TDD — version-gating tests updated first (red), then
+content edited to green. Every upstream version was verified against the
+project's live GitHub releases on 2026-06-18 (not training data). Release-asset
+URLs were confirmed reachable. **No live kind-cluster run was performed** — the
+manifests parse and the install URLs resolve, but the lab flows have not been
+executed end-to-end against a running cluster.
 
 ## Test status
 
-71 tests passing across 8 test files (was 55 before this work; +16 new).
+71 tests passing across 8 test files. `ruff check`, `ruff format --check`, and
+`mypy tests/` all green on Python 3.12.13 (pinned via `.python-version`).
 
-## Phases completed
+## What this session did
 
-| # | Title                                        | Commit      |
-|---|----------------------------------------------|-------------|
-| 1 | Tooling baseline — ruff/format/mypy clean    | `4221e8e`   |
-| 2 | CI workflow hardening — perms/concurrency/SHAs | `069b23d` |
-| 3 | mcp-server image — wrong path AND :latest    | `b1eaf2d`   |
-| 4 | Knative pins to current stable (1.21)        | `2de63cb`   |
-| 5 | KServe v0.17.0 with --server-side recommended | `84a1ce2`  |
-| 6 | Lab 02 DRA driver path correction            | `f5092f8`   |
-| 7 | Declarative namespace creation across labs   | `f0b204a`   |
-| 8 | securityContext teaching pattern (lab 01)    | `5150846`   |
+Picked up after the April senior-review follow-up. Two drivers:
+1. A full version-drift audit — everything pinned in April had drifted after
+   ~7 weeks.
+2. Clearing the 9 CodeRabbit review comments blocking PR #2.
 
-## Verification status
+| # | Phase | Commit |
+|---|-------|--------|
+| pre | pytest 9.0.2 → 9.0.3 (CVE-2025-71176) | `ef78682` |
+| A | CI action pins (checkout v6.0.3, setup-uv v8.2.0); validate_ci exempts local actions; fact-check tests skip the gitignored claude-ai-context/ archive | `cbfaa62` |
+| B | Dev toolchain: mypy 1.20→2.1, pytest 9.0.3→9.1, ruff→0.15.18, types-PyYAML latest | `0f44531` |
+| C | Test hardening: validate_security asserts runAsUser + seccompProfile; Knative test checks all refs not just first; namespace check case/space-insensitive | `6d9f672` |
+| D | Upstream version bumps (see below) + JobSet/KServe gating tests | `fe4b19b` |
+| E | lab02 DRA kube-context step; improvement-plan Phase 3 block resolved; this file | (pending) |
 
-- **Tests:** all 71 pass locally on Python 3.12.13.
-- **Lint/format/types:** `uv run ruff check .`, `uv run ruff format --check .`,
-  `uv run mypy tests/` — all green. CLAUDE.md commands honor their promise.
-- **CI workflow:** parses cleanly, has `permissions: contents: read`,
-  concurrency cancellation, 10-minute timeout, lint gates, SHA-pinned
-  third-party actions.
-- **Upstream URLs verified with `curl -I`:**
-  - `knative-v1.21.2/serving-crds.yaml` → 200
-  - `knative-v1.21.2/serving-core.yaml` → 200
-  - `knative-extensions/net-kourier/.../knative-v1.21.0/kourier.yaml` → 200
-  - `kserve/v0.17.0/kserve.yaml` → 200
-  - `kserve/v0.17.0/kserve-cluster-resources.yaml` → 200
-- **Image reference verified:** `ghcr.io/kagent-dev/kagent/tools:0.1.4` is a
-  real published artifact (kagent-dev/tools v0.1.4, 2026-04-01).
-- **NOT verified against a live cluster:** the lab 01 securityContext changes
-  and the lab 02 DRA driver demo flow have not been executed end-to-end.
-  Local kind verification deferred.
+## Version bumps applied (verified 2026-06-18)
+
+| Project | April pin | Now |
+|---------|-----------|-----|
+| Kueue (lab 01 Helm) | 0.17.0 | 0.18.1 |
+| JobSet (lab 03) | v0.11.1 | v0.12.0 |
+| KServe (lab 04) | v0.17.0 | v0.19.0 |
+| Knative Serving (lab 04) | knative-v1.21.2 | knative-v1.22.1 |
+| net-kourier (lab 04) | knative-v1.21.0 | knative-v1.22.1 |
+| LeaderWorkerSet (docs) | v0.8.0 | v0.9.0 |
+| llm-d (docs) | v0.5 | v0.7.0 (+ breaking-change note) |
+| kagent tools image (lab 06) | 0.1.4 | 0.2.1 |
+| kind (lab 00) | v0.31.0 | v0.32.0 |
+| kindest/node (lab 00) | v1.35.1 | v1.36.1 |
+| README kind prereq floor | v0.27+ | v0.32+ |
+
+No-drift / unchanged (confirmed current): MCP spec 2025-11-25; Gateway API
+Inference `InferenceObjective`/`InferencePool` (ext v1.5.0); DRA GA-in-1.34
+framing; kagent still CNCF Sandbox.
+
+## Verified vs not verified
+
+- **Verified:** all 71 tests pass; ruff/format/mypy green; every bumped version
+  checked against its GitHub releases page; release-asset URLs reachable;
+  kagent tools 0.2.1 is a real published tag.
+- **NOT verified:** no lab was run on a live kind cluster this session. KServe
+  0.17→0.19, Knative 1.21→1.22, Kueue 0.17→0.18, and JobSet 0.11→0.12 each cross
+  a minor boundary and may carry CRD/API changes that only a cluster run would
+  surface. llm-d v0.7.0 has documented breaking changes (NVIDIA 580+, standalone
+  default mode) noted in its one-pager but not exercised.
+
+## CodeRabbit (PR #2) status
+
+All 9 comments addressed: the 3 Majors (Knative first-match test, security test
+missing fields, DRA kube-context), the minors (CI SHA scope, namespace
+brittleness, KServe time-relative wording, stale Phase 3 block), and the
+"Critical" kagent-image flag (independently confirmed 0.1.4 was a real tag; now
+bumped to 0.2.1 regardless).
 
 ## Next steps
 
-Open the staging→main PR once Michael has reviewed. Items deferred (not in
-scope for this round):
+- Push staging; confirm CI green and PR #2 turns mergeable with the review
+  resolved.
+- PR #1 (dependabot pytest 9.0.3) is now redundant — it auto-closes when staging
+  merges, or can be closed manually.
+- **Recurring maintenance reality:** exact version pins in long-lived teaching
+  content drift roughly every 6–8 weeks. The scheduled 30-day check-in routine
+  (`trig_01PwZGVCYdzFVDCUqNFWo9JL`) is the backstop; a periodic version sweep is
+  the recurring cost of this pinning strategy.
 
-- markdownlint / shellcheck CI integration
-- Standardized cleanup sections per lab
-- Helm chart digest pinning
-- `.editorconfig`, PR/issue templates
-- One-pager Knative version pin
-- Tighter `_strip_code_blocks` regex in `validate_markdown.py`
-- Nightly external-URL validation job
-- `requires-python` floor revision
+## Out of scope (carried forward)
 
-These are documented in `docs/improvement-plan.md` under "Out of scope."
-
-## Open question parked
-
-Phase 3 picked **option 1** (`ghcr.io/kagent-dev/kagent/tools:0.1.4`) for the
-mcp-server image without explicit confirmation. Alternatives were:
-
-- (2) `ghcr.io/containers/kubernetes-mcp-server:<tag>` — focused, unaffiliated.
-- (3) Leave as illustrative with a warning comment.
-
-Override possible by editing `labs/06-kagent-mcp/manifests/mcp-server.yaml`.
+markdownlint / shellcheck CI, standardized per-lab cleanup sections, Helm chart
+digest pinning, `.editorconfig`, PR/issue templates, nightly external-URL
+validation job, `requires-python` floor revision. See improvement-plan.md.

@@ -30,23 +30,17 @@ versions and image references in the changes below:
   `ghcr.io/kagent-dev/kagent/tools` image (latest `0.1.4`, 2026-04-01). An
   unaffiliated alternative is `ghcr.io/containers/kubernetes-mcp-server`.
 
-## Open question for Michael (blocks Phase 3)
+## Phase 3 image decision (resolved)
 
-The current `labs/06-kagent-mcp/manifests/mcp-server.yaml:24` references an
-image path that does not exist (`ghcr.io/kagent-dev/kubernetes-mcp-server:latest`).
-Three possible resolutions, each with trade-offs:
-
-1. **Point at `ghcr.io/kagent-dev/kagent/tools:0.1.4`.** This is the
-   officially-shipped image but it bundles many tools beyond Kubernetes — the
-   manifest `tools:` list filters them. Most idiomatic for kagent.
-2. **Point at `ghcr.io/containers/kubernetes-mcp-server:<tag>`.** A focused,
-   single-purpose image but unaffiliated with kagent. Cleaner teaching example;
-   slightly off the kagent ecosystem path.
-3. **Leave the manifest as a conceptual artifact** with a warning that the
-   image is illustrative. Lowest churn but contradicts the "evergreen, working"
-   convention used in other labs.
-
-Pending decision before Phase 3 executes.
+The original `labs/06-kagent-mcp/manifests/mcp-server.yaml` referenced an image
+path that did not exist (`ghcr.io/kagent-dev/kubernetes-mcp-server:latest`).
+**Resolved with option 1:** the manifest now points at the officially-shipped
+`ghcr.io/kagent-dev/kagent/tools` image (pinned to a real tag), with the
+manifest `tools:` list filtering it down to the Kubernetes subset — the most
+idiomatic choice for the kagent ecosystem. The unaffiliated
+`ghcr.io/containers/kubernetes-mcp-server` and a purely-illustrative manifest
+were the considered alternatives. The pinned tag is kept current as part of the
+repo's version-drift maintenance rather than tracked here.
 
 ## Phases
 

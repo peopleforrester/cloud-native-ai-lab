@@ -152,8 +152,18 @@ kubectl get resourceslice -o yaml
 
 #### Step 4: Apply the lab manifests
 
-From the cloud-native-ai-lab repo (in another terminal), apply the manifests
-against the demo cluster:
+`create-cluster.sh` switches your kubeconfig to the demo cluster's context,
+but if you opened a new terminal or ran other `kubectl` commands since, confirm
+you are pointed at the demo cluster — not the `ai-workshop` cluster from Lab 00 —
+before applying anything:
+
+```bash
+# List contexts and switch to the demo cluster (kind prefixes contexts with "kind-").
+kubectl config get-contexts
+kubectl config use-context kind-dra-example-driver-cluster
+```
+
+From the cloud-native-ai-lab repo, apply the manifests against the demo cluster:
 
 ```bash
 kubectl apply -f manifests/device-class.yaml
