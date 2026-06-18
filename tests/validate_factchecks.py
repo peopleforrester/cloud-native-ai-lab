@@ -193,10 +193,13 @@ class TestDeclarativeNamespaces:
             repo_root / "labs" / "06-kagent-mcp" / "README.md",
         ]
         bad: list[str] = []
+        # Normalize whitespace and case so command variants ("kubectl  create
+        # Namespace", extra spaces) cannot slip past the gate.
+        imperative = re.compile(r"kubectl\s+create\s+namespace", re.IGNORECASE)
         for path in forbidden_files:
             content = path.read_text()
             for i, line in enumerate(content.split("\n"), 1):
-                if "kubectl create namespace" in line:
+                if imperative.search(line):
                     rel = path.relative_to(repo_root)
                     bad.append(f"{rel}:{i}: {line.strip()}")
         assert not bad, (
@@ -268,15 +271,17 @@ class TestKnativeVersion:
                     )
 
     def test_kserve_lab_uses_current_knative(self, repo_root: Path) -> None:
-        """Lab 04 README must reference Knative >= 1.21."""
+        """Every Knative reference in Lab 04 must be >= 1.21.
+
+        Validate ALL matches, not just the first — a single stale reference
+        anywhere in the file must fail the gate, regardless of ordering.
+        """
         lab_readme = repo_root / "labs" / "04-kserve-inference" / "README.md"
         content = lab_readme.read_text()
-        match = re.search(r"knative-v1\.(\d+)\.\d+", content)
-        assert match, "Lab 04 README missing a knative-v1.X.Y version reference"
-        minor = int(match.group(1))
-        assert minor >= 21, (
-            f"Lab 04 references knative-v1.{minor} — must be >= 1.21 (current stable)"
-        )
+        matches = re.findall(r"knative-v1\.(\d+)\.\d+", content)
+        assert matches, "Lab 04 README missing a knative-v1.X.Y version reference"
+        stale = [f"knative-v1.{m}" for m in matches if int(m) < 21]
+        assert not stale, f"Lab 04 references Knative below the 1.21 floor: {sorted(set(stale))}"
 
 
 class TestLlmdAttribution:

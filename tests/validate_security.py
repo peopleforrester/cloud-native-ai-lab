@@ -18,6 +18,13 @@ def test_kueue_sample_job_uses_security_context(repo_root: Path) -> None:
     pod_sec = pod_spec.get("securityContext")
     assert pod_sec is not None, "Pod template missing securityContext block"
     assert pod_sec.get("runAsNonRoot") is True, "pod securityContext.runAsNonRoot must be true"
+    assert pod_sec.get("runAsUser") == 65534, (
+        "pod securityContext.runAsUser must pin a non-root UID (65534/nobody)"
+    )
+    seccomp = pod_sec.get("seccompProfile", {})
+    assert seccomp.get("type") == "RuntimeDefault", (
+        "pod securityContext.seccompProfile.type must be RuntimeDefault"
+    )
 
     container = pod_spec["containers"][0]
     container_sec = container.get("securityContext")
