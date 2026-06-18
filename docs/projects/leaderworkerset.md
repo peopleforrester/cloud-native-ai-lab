@@ -11,7 +11,7 @@ LeaderWorkerSet handles the Pod topology for multi-host inference workloads, com
 
 ## Current status
 - **CNCF status:** Not a CNCF project — maintained under kubernetes-sigs
-- **Latest version:** v0.8.0 (stable API, v1)
+- **Latest version:** v0.9.0 (stable API, v1)
 - **Key CRDs:** LeaderWorkerSet
 
 ## Get started
@@ -20,4 +20,4 @@ LeaderWorkerSet handles the Pod topology for multi-host inference workloads, com
 - Related lab: No dedicated lab — referenced in context of [labs/03-jobset-training](../../labs/03-jobset-training) and [labs/04-kserve-inference](../../labs/04-kserve-inference)
 
 ## Last verified
-March 2026 — all facts checked against official sources.
+June 2026 — all facts checked against official sources.

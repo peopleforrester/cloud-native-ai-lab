@@ -26,7 +26,7 @@ spec:
   # kagent-dev/kagent/tools image, which also bundles helm, prometheus,
   # argo, istio, cilium, and grafana tooling. The `tools:` list below
   # filters this server to expose only the kubernetes subset.
-  image: ghcr.io/kagent-dev/kagent/tools:0.1.4
+  image: ghcr.io/kagent-dev/kagent/tools:0.2.1
 
   # args are command-line arguments passed to the MCP server container.
   args:

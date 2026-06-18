@@ -27,7 +27,7 @@ def _read_content_files(repo_root: Path) -> list[tuple[Path, str]]:
 
 
 class TestJobSetVersion:
-    """JobSet version must be v0.11.1, not v0.10.1."""
+    """JobSet version must be v0.12.0, not the older v0.10.1."""
 
     def test_no_incorrect_jobset_version(self, repo_root: Path) -> None:
         """The incorrect JobSet version v0.10.1 should not appear as a current version."""
@@ -55,11 +55,11 @@ class TestJobSetVersion:
                         )
 
     def test_correct_jobset_version_exists(self, repo_root: Path) -> None:
-        """The correct JobSet version v0.11.1 must appear in at least one content file."""
+        """The correct JobSet version v0.12.0 must appear in at least one content file."""
         for _, content in _read_content_files(repo_root):
-            if "v0.11.1" in content:
+            if "v0.12.0" in content:
                 return
-        pytest.fail("Correct JobSet version v0.11.1 not found in any content file")
+        pytest.fail("Correct JobSet version v0.12.0 not found in any content file")
 
 
 class TestMCPServerCount:
@@ -235,22 +235,22 @@ class TestDRADriverPath:
 
 
 class TestKServeVersion:
-    """Lab 04 must offer KServe v0.17.0 with --server-side as the recommended path."""
+    """Lab 04 must offer KServe v0.19.0 with --server-side as the recommended path."""
 
-    def test_kserve_lab_recommends_v017_server_side(self, repo_root: Path) -> None:
+    def test_kserve_lab_recommends_v019_server_side(self, repo_root: Path) -> None:
         """Lab 04 README must offer a working `kubectl apply --server-side` command
-        that installs KServe v0.17.0 — not just mention it in prose."""
+        that installs KServe v0.19.0 — not just mention it in prose."""
         lab_readme = repo_root / "labs" / "04-kserve-inference" / "README.md"
         content = lab_readme.read_text()
-        # Look for an actual command line installing v0.17.0 with --server-side.
+        # Look for an actual command line installing v0.19.0 with --server-side.
         # Allow line continuations (\) between the flag and the URL.
         pattern = re.compile(
             r"kubectl\s+apply\s+--server-side[\s\S]{0,200}?"
-            r"kserve/releases/download/v0\.17\.0/",
+            r"kserve/releases/download/v0\.19\.0/",
         )
         assert pattern.search(content), (
-            "Lab 04 must include a `kubectl apply --server-side ... v0.17.0/...` "
-            "command, not just reference v0.17.0 in explanatory text"
+            "Lab 04 must include a `kubectl apply --server-side ... v0.19.0/...` "
+            "command, not just reference v0.19.0 in explanatory text"
         )
 
 

@@ -57,17 +57,17 @@ each one:
 
 ```bash
 # Linux
-curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.31.0/kind-linux-amd64
+curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.32.0/kind-linux-amd64
 chmod +x ./kind
 sudo mv ./kind /usr/local/bin/kind
 
 # macOS (Intel)
-curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.31.0/kind-darwin-amd64
+curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.32.0/kind-darwin-amd64
 chmod +x ./kind
 sudo mv ./kind /usr/local/bin/kind
 
 # macOS (Apple Silicon)
-curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.31.0/kind-darwin-arm64
+curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.32.0/kind-darwin-arm64
 chmod +x ./kind
 sudo mv ./kind /usr/local/bin/kind
 ```
@@ -149,9 +149,9 @@ You should see output similar to:
 
 ```
 NAME                        STATUS   ROLES           AGE   VERSION
-ai-workshop-control-plane   Ready    control-plane   2m    v1.35.x
-ai-workshop-worker          Ready    <none>          2m    v1.35.x
-ai-workshop-worker2         Ready    <none>          2m    v1.35.x
+ai-workshop-control-plane   Ready    control-plane   2m    v1.36.x
+ai-workshop-worker          Ready    <none>          2m    v1.36.x
+ai-workshop-worker2         Ready    <none>          2m    v1.36.x
 ```
 
 The two worker nodes should have labels including:

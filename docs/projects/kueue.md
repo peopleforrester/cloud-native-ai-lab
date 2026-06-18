@@ -11,7 +11,7 @@ Kueue manages the queue and admission decisions for GPU workloads, sitting above
 
 ## Current status
 - **CNCF status:** Incubating
-- **Latest version:** v0.17.0
+- **Latest version:** v0.18.1
 - **Key CRDs:** ClusterQueue, LocalQueue, ResourceFlavor, Workload
 
 ## Get started
@@ -20,4 +20,4 @@ Kueue manages the queue and admission decisions for GPU workloads, sitting above
 - Related lab: [labs/01-kueue-basics](../../labs/01-kueue-basics)
 
 ## Last verified
-March 2026 — all facts checked against official sources.
+June 2026 — all facts checked against official sources.

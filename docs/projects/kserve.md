@@ -11,7 +11,7 @@ KServe sits at the top of the inference stack. It uses Knative for scale-to-zero
 
 ## Current status
 - **CNCF status:** Incubating (accepted September 29, 2025)
-- **Latest version:** v0.17.0 (released March 13, 2026)
+- **Latest version:** v0.19.0 (released June 14, 2026)
 - **Key CRDs:** InferenceService, LLMInferenceService
 - **Adoption:** 5,990 GitHub stars; used by Bloomberg, Red Hat, NVIDIA, SAP
 
@@ -21,4 +21,4 @@ KServe sits at the top of the inference stack. It uses Knative for scale-to-zero
 - Related lab: [labs/04-kserve-inference](../../labs/04-kserve-inference)
 
 ## Last verified
-March 2026 — all facts checked against official sources.
+June 2026 — all facts checked against official sources.

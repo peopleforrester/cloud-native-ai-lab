@@ -11,7 +11,7 @@ JobSet defines the shape of a distributed training run (how many workers, how ma
 
 ## Current status
 - **CNCF status:** Not a CNCF project — maintained under kubernetes-sigs
-- **Latest version:** v0.11.1
+- **Latest version:** v0.12.0
 - **Key CRDs:** JobSet
 
 ## Get started
@@ -20,4 +20,4 @@ JobSet defines the shape of a distributed training run (how many workers, how ma
 - Related lab: [labs/03-jobset-training](../../labs/03-jobset-training)
 
 ## Last verified
-March 2026 — all facts checked against official sources.
+June 2026 — all facts checked against official sources.

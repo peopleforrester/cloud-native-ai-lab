@@ -49,11 +49,11 @@ One-page summaries of every project covered in the labs:
 |---------|-------------|--------|
 | [DRA](docs/projects/dra.md) | Declarative GPU allocation | Core K8s (GA in 1.34) |
 | [Kueue](docs/projects/kueue.md) | Job queuing and fair sharing | CNCF Incubating |
-| [JobSet](docs/projects/jobset.md) | Distributed training orchestration | kubernetes-sigs (v0.11.1) |
-| [LeaderWorkerSet](docs/projects/leaderworkerset.md) | Multi-host inference topology | kubernetes-sigs (v0.8.0) |
-| [KServe](docs/projects/kserve.md) | Model serving platform | CNCF Incubating (v0.17.0) |
+| [JobSet](docs/projects/jobset.md) | Distributed training orchestration | kubernetes-sigs (v0.12.0) |
+| [LeaderWorkerSet](docs/projects/leaderworkerset.md) | Multi-host inference topology | kubernetes-sigs (v0.9.0) |
+| [KServe](docs/projects/kserve.md) | Model serving platform | CNCF Incubating (v0.19.0) |
 | [Knative](docs/projects/knative.md) | Scale-to-zero serverless | CNCF Graduated |
-| [llm-d](docs/projects/llm-d.md) | Distributed LLM inference | Launched by Red Hat (v0.5) |
+| [llm-d](docs/projects/llm-d.md) | Distributed LLM inference | Launched by Red Hat (v0.7.0) |
 | [Gateway API Inference](docs/projects/gateway-api-inference.md) | Model-aware routing | GA (InferenceObjective + InferencePool) |
 | [kagent](docs/projects/kagent.md) | Kubernetes-native AI agents | CNCF Sandbox |
 | [MCP](docs/projects/mcp.md) | Model Context Protocol | AAIF / Linux Foundation |
@@ -65,7 +65,7 @@ Full reports:
 
 ## Prerequisites
 
-- [kind](https://kind.sigs.k8s.io/) v0.27+
+- [kind](https://kind.sigs.k8s.io/) v0.32+
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Helm](https://helm.sh/docs/intro/install/) 3.x
 - ~8GB RAM for the kind cluster
