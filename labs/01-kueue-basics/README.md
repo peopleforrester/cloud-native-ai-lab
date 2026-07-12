@@ -58,7 +58,7 @@ Install Kueue into the cluster using the official OCI Helm chart:
 
 ```bash
 helm install kueue oci://registry.k8s.io/kueue/charts/kueue \
-  --version 0.17.0 \
+  --version 0.18.3 \
   -n kueue-system \
   --create-namespace \
   --wait --timeout 5m
@@ -105,8 +105,7 @@ LocalQueues live in a namespace and point to a ClusterQueue. Users submit jobs
 to LocalQueues — they never interact with ClusterQueues directly:
 
 ```bash
-kubectl create namespace team-a-ns
-kubectl create namespace team-b-ns
+kubectl apply -f manifests/namespaces.yaml
 kubectl apply -f manifests/local-queue-a.yaml
 kubectl apply -f manifests/local-queue-b.yaml
 ```
@@ -198,6 +197,25 @@ You deployed a complete Kueue job queueing system with:
 In a real cluster with GPUs, you would add `nvidia.com/gpu` to the
 ClusterQueue resource groups and create ResourceFlavors for different GPU
 types. The queueing and preemption mechanics work exactly the same way.
+
+### Aside: workload hardening
+
+Open `manifests/sample-job.yaml` and look at the `securityContext` blocks.
+They are not strictly required for Kueue to admit the job, but they are the
+production-grade pattern every batch workload should adopt:
+
+- `runAsNonRoot: true` and `runAsUser: 65534` — refuse to run the container
+  as root. Most base images run as root by default; this block opts out.
+- `seccompProfile.type: RuntimeDefault` — apply the container runtime's
+  default syscall filter, which blocks rarely-used kernel surfaces.
+- `readOnlyRootFilesystem: true` — make the root filesystem immutable.
+  Anything that needs to write must mount an explicit emptyDir or PVC.
+- `capabilities.drop: ["ALL"]` and `allowPrivilegeEscalation: false` — drop
+  every Linux capability and forbid `setuid`/`setgid` privilege gain.
+
+This is the baseline for the "restricted" Pod Security Standard. When you
+move to GPU workloads in later labs, copy the pattern — the only difference
+is which capabilities or paths the workload actually needs.
 
 ## Clean up
 

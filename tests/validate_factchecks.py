@@ -9,7 +9,15 @@ import pytest
 
 def _read_content_files(repo_root: Path) -> list[tuple[Path, str]]:
     """Read all final content markdown files (excluding source originals and tests)."""
-    excluded_patterns = ["compass_artifact", "node_modules", "__pycache__", ".git/"]
+    # claude-ai-context/ is a local-only imported research archive (gitignored,
+    # never published) that intentionally preserves pre-correction source facts.
+    excluded_patterns = [
+        "compass_artifact",
+        "claude-ai-context",
+        "node_modules",
+        "__pycache__",
+        ".git/",
+    ]
     results = []
     for md_file in repo_root.rglob("*.md"):
         rel = str(md_file.relative_to(repo_root))
@@ -19,7 +27,7 @@ def _read_content_files(repo_root: Path) -> list[tuple[Path, str]]:
 
 
 class TestJobSetVersion:
-    """JobSet version must be v0.11.1, not v0.10.1."""
+    """JobSet version must be v0.12.0, not the older v0.10.1."""
 
     def test_no_incorrect_jobset_version(self, repo_root: Path) -> None:
         """The incorrect JobSet version v0.10.1 should not appear as a current version."""
@@ -32,22 +40,26 @@ class TestJobSetVersion:
                     lower_line = line.lower()
                     correction_context = any(
                         word in lower_line
-                        for word in ["not v0.10.1", "incorrect", "corrected",
-                                     "should be", "was v0.10.1"]
+                        for word in [
+                            "not v0.10.1",
+                            "incorrect",
+                            "corrected",
+                            "should be",
+                            "was v0.10.1",
+                        ]
                     )
                     if not correction_context:
                         rel = md_file.relative_to(repo_root)
                         pytest.fail(
-                            f"{rel} contains incorrect JobSet version v0.10.1 "
-                            f"(should be v0.11.1)"
+                            f"{rel} contains incorrect JobSet version v0.10.1 (should be v0.11.1)"
                         )
 
     def test_correct_jobset_version_exists(self, repo_root: Path) -> None:
-        """The correct JobSet version v0.11.1 must appear in at least one content file."""
+        """The correct JobSet version v0.12.0 must appear in at least one content file."""
         for _, content in _read_content_files(repo_root):
-            if "v0.11.1" in content:
+            if "v0.12.0" in content:
                 return
-        pytest.fail("Correct JobSet version v0.11.1 not found in any content file")
+        pytest.fail("Correct JobSet version v0.12.0 not found in any content file")
 
 
 class TestMCPServerCount:
@@ -63,14 +75,12 @@ class TestMCPServerCount:
                     lower_line = line.lower()
                     correction_context = any(
                         word in lower_line
-                        for word in ["not 6,400", "not 6400", "incorrect",
-                                     "corrected", "should be"]
+                        for word in ["not 6,400", "not 6400", "incorrect", "corrected", "should be"]
                     )
                     if not correction_context:
                         rel = md_file.relative_to(repo_root)
                         pytest.fail(
-                            f"{rel} contains incorrect MCP server count 6,400 "
-                            f"(should be 10,000+)"
+                            f"{rel} contains incorrect MCP server count 6,400 (should be 10,000+)"
                         )
 
     def test_correct_mcp_count_exists(self, repo_root: Path) -> None:
@@ -107,9 +117,18 @@ class TestInferenceObjective:
                     context_block = " ".join(lines[start:end]).lower()
                     rename_context = any(
                         word in context_block
-                        for word in ["renamed", "was renamed", "previously", "formerly",
-                                     "migration", "replaced", "old name",
-                                     "not inferencemodel", "pre-ga", "pre_ga"]
+                        for word in [
+                            "renamed",
+                            "was renamed",
+                            "previously",
+                            "formerly",
+                            "migration",
+                            "replaced",
+                            "old name",
+                            "not inferencemodel",
+                            "pre-ga",
+                            "pre_ga",
+                        ]
                     )
                     if not rename_context:
                         pytest.fail(
@@ -160,6 +179,109 @@ class TestGenAIStatQualifier:
                             f"Must specify 'of organizations already hosting "
                             f"generative AI models'"
                         )
+
+
+class TestDeclarativeNamespaces:
+    """Lab READMEs should use declarative `kubectl apply -f` for namespaces,
+    matching the rest of each lab's manifest-driven style."""
+
+    def test_no_imperative_namespace_creation(self, repo_root: Path) -> None:
+        """`kubectl create namespace` is forbidden in main lab READMEs."""
+        forbidden_files = [
+            repo_root / "labs" / "01-kueue-basics" / "README.md",
+            repo_root / "labs" / "04-kserve-inference" / "README.md",
+            repo_root / "labs" / "06-kagent-mcp" / "README.md",
+        ]
+        bad: list[str] = []
+        # Normalize whitespace and case so command variants ("kubectl  create
+        # Namespace", extra spaces) cannot slip past the gate.
+        imperative = re.compile(r"kubectl\s+create\s+namespace", re.IGNORECASE)
+        for path in forbidden_files:
+            content = path.read_text()
+            for i, line in enumerate(content.split("\n"), 1):
+                if imperative.search(line):
+                    rel = path.relative_to(repo_root)
+                    bad.append(f"{rel}:{i}: {line.strip()}")
+        assert not bad, (
+            "Use `kubectl apply -f` for namespaces, not imperative create:\n" + "\n".join(bad)
+        )
+
+
+class TestDRADriverPath:
+    """Lab 02 Part B must reference the canonical kubernetes-sigs/dra-example-driver,
+    not the non-existent kubernetes/test/e2e/dra/test-driver path."""
+
+    def test_no_stale_dra_test_driver_path(self, repo_root: Path) -> None:
+        """`kubernetes/test/e2e/dra/test-driver` must not appear in any final content."""
+        for md_file, content in _read_content_files(repo_root):
+            rel = str(md_file.relative_to(repo_root))
+            if "compass_artifact" in rel or "improvement-plan" in rel:
+                continue
+            for i, line in enumerate(content.split("\n"), 1):
+                if "kubernetes/test/e2e/dra/test-driver" in line:
+                    pytest.fail(
+                        f"{rel}:{i} references the non-existent "
+                        f"`kubernetes/test/e2e/dra/test-driver` path. "
+                        f"Use `kubernetes-sigs/dra-example-driver` instead."
+                    )
+
+    def test_dra_lab_uses_kubernetes_sigs_repo(self, repo_root: Path) -> None:
+        """Lab 02 README must point at github.com/kubernetes-sigs/dra-example-driver."""
+        lab_readme = repo_root / "labs" / "02-dra-resource-claims" / "README.md"
+        content = lab_readme.read_text()
+        assert "kubernetes-sigs/dra-example-driver" in content, (
+            "Lab 02 README must reference the canonical kubernetes-sigs/dra-example-driver repo"
+        )
+
+
+class TestKServeVersion:
+    """Lab 04 must offer KServe v0.19.0 with --server-side as the recommended path."""
+
+    def test_kserve_lab_recommends_v019_server_side(self, repo_root: Path) -> None:
+        """Lab 04 README must offer a working `kubectl apply --server-side` command
+        that installs KServe v0.19.0 — not just mention it in prose."""
+        lab_readme = repo_root / "labs" / "04-kserve-inference" / "README.md"
+        content = lab_readme.read_text()
+        # Look for an actual command line installing v0.19.0 with --server-side.
+        # Allow line continuations (\) between the flag and the URL.
+        pattern = re.compile(
+            r"kubectl\s+apply\s+--server-side[\s\S]{0,200}?"
+            r"kserve/releases/download/v0\.19\.0/",
+        )
+        assert pattern.search(content), (
+            "Lab 04 must include a `kubectl apply --server-side ... v0.19.0/...` "
+            "command, not just reference v0.19.0 in explanatory text"
+        )
+
+
+class TestKnativeVersion:
+    """Lab 04 must reference a current Knative Serving release, not the stale 1.17.0."""
+
+    def test_no_stale_knative_117(self, repo_root: Path) -> None:
+        """`knative-v1.17.0` must not appear in any final content file."""
+        for md_file, content in _read_content_files(repo_root):
+            rel = str(md_file.relative_to(repo_root))
+            if "compass_artifact" in rel or "improvement-plan" in rel:
+                continue
+            for i, line in enumerate(content.split("\n"), 1):
+                if "knative-v1.17.0" in line:
+                    pytest.fail(
+                        f"{rel}:{i} references stale knative-v1.17.0 (released Oct 2024). "
+                        f"Update to a current 1.21+ release."
+                    )
+
+    def test_kserve_lab_uses_current_knative(self, repo_root: Path) -> None:
+        """Every Knative reference in Lab 04 must be >= 1.21.
+
+        Validate ALL matches, not just the first — a single stale reference
+        anywhere in the file must fail the gate, regardless of ordering.
+        """
+        lab_readme = repo_root / "labs" / "04-kserve-inference" / "README.md"
+        content = lab_readme.read_text()
+        matches = re.findall(r"knative-v1\.(\d+)\.\d+", content)
+        assert matches, "Lab 04 README missing a knative-v1.X.Y version reference"
+        stale = [f"knative-v1.{m}" for m in matches if int(m) < 21]
+        assert not stale, f"Lab 04 references Knative below the 1.21 floor: {sorted(set(stale))}"
 
 
 class TestLlmdAttribution:

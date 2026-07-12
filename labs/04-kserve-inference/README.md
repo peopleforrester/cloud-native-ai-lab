@@ -50,14 +50,14 @@ KServe requires Knative Serving and a networking layer. Install them in order.
 First, install the Knative Serving CRDs and core components:
 
 ```bash
-kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.17.0/serving-crds.yaml
-kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.17.0/serving-core.yaml
+kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.22.1/serving-crds.yaml
+kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.22.1/serving-core.yaml
 ```
 
 Install the Knative networking layer (Kourier — lightweight, good for kind):
 
 ```bash
-kubectl apply -f https://github.com/knative/net-kourier/releases/download/knative-v1.17.0/kourier.yaml
+kubectl apply -f https://github.com/knative-extensions/net-kourier/releases/download/knative-v1.22.1/kourier.yaml
 ```
 
 Configure Knative to use Kourier:
@@ -76,16 +76,24 @@ kubectl wait --for=condition=Available deployment --all \
   -n knative-serving --timeout=120s
 ```
 
-Now install KServe. This lab uses v0.14.1, which has stable `kubectl apply`
-support for kind clusters. The latest version is v0.17.0 (see the
-[KServe one-pager](../../docs/projects/kserve.md)), but v0.14.1 is more
-reliable for local development because its CRD annotations fit within
-`kubectl apply` size limits without requiring `--server-side`:
+Now install KServe. This lab is pinned to v0.19.0 (see the
+[KServe one-pager](../../docs/projects/kserve.md)). The recommended install
+uses `kubectl apply --server-side` because the CRD annotations exceed the
+client-side `kubectl apply` size limit:
 
 ```bash
-kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.14.1/kserve.yaml
-kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.14.1/kserve-cluster-resources.yaml
+kubectl apply --server-side -f https://github.com/kserve/kserve/releases/download/v0.19.0/kserve.yaml
+kubectl apply --server-side -f https://github.com/kserve/kserve/releases/download/v0.19.0/kserve-cluster-resources.yaml
 ```
+
+> **Older kubectl?** If your `kubectl` is too old for `--server-side`
+> (`kubectl` < 1.18), use v0.14.1, whose CRDs still fit the client-side
+> apply size limit:
+>
+> ```bash
+> kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.14.1/kserve.yaml
+> kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.14.1/kserve-cluster-resources.yaml
+> ```
 
 Wait for KServe to be ready:
 
@@ -97,7 +105,7 @@ kubectl wait --for=condition=Available deployment/kserve-controller-manager \
 ### Step 2: Create a namespace for inference workloads
 
 ```bash
-kubectl create namespace inference
+kubectl apply -f manifests/namespace.yaml
 ```
 
 ### Step 3: Deploy the sklearn InferenceService
@@ -253,16 +261,16 @@ kubectl delete -f manifests/inference-service.yaml
 # Delete the inference namespace
 kubectl delete namespace inference
 
-# Remove KServe
-kubectl delete -f https://github.com/kserve/kserve/releases/download/v0.14.1/kserve-cluster-resources.yaml
-kubectl delete -f https://github.com/kserve/kserve/releases/download/v0.14.1/kserve.yaml
+# Remove KServe (use the same version you installed; v0.19.0 shown here)
+kubectl delete -f https://github.com/kserve/kserve/releases/download/v0.19.0/kserve-cluster-resources.yaml
+kubectl delete -f https://github.com/kserve/kserve/releases/download/v0.19.0/kserve.yaml
 
 # Remove Knative networking (Kourier)
-kubectl delete -f https://github.com/knative/net-kourier/releases/download/knative-v1.17.0/kourier.yaml
+kubectl delete -f https://github.com/knative-extensions/net-kourier/releases/download/knative-v1.22.1/kourier.yaml
 
 # Remove Knative Serving
-kubectl delete -f https://github.com/knative/serving/releases/download/knative-v1.17.0/serving-core.yaml
-kubectl delete -f https://github.com/knative/serving/releases/download/knative-v1.17.0/serving-crds.yaml
+kubectl delete -f https://github.com/knative/serving/releases/download/knative-v1.22.1/serving-core.yaml
+kubectl delete -f https://github.com/knative/serving/releases/download/knative-v1.22.1/serving-crds.yaml
 ```
 
 ## Next step

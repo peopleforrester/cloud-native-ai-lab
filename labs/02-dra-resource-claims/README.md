@@ -39,12 +39,13 @@ model where an external controller had to handle every allocation request.
 
 **An honest note about this lab:** DRA requires a resource driver that
 publishes device information to the cluster. On a kind cluster without real
-GPUs, you would need to install the `dra-example-driver` from the Kubernetes
-repository. This driver simulates devices but requires building from source and
-can be fragile across Kubernetes versions. This lab is structured in two parts:
-Part A walks through annotated manifests so you understand the DRA resource
-model conceptually, and Part B provides optional instructions for installing
-the example driver if you want a hands-on experience.
+GPUs, you would install the `dra-example-driver` from
+[kubernetes-sigs/dra-example-driver](https://github.com/kubernetes-sigs/dra-example-driver).
+This driver simulates devices for testing. Building it from source is a
+multi-step process that requires Go, Docker, and Helm. This lab is structured
+in two parts: Part A walks through annotated manifests so you understand the
+DRA resource model conceptually, and Part B provides optional instructions
+for installing the example driver if you want hands-on experience.
 
 ## Exercise
 
@@ -105,32 +106,64 @@ into the container, and the appropriate driver libraries are available.
 
 ### Part B: Optional — hands-on with the DRA example driver
 
-> **Warning:** The DRA example driver requires cloning the Kubernetes
-> repository and building the driver image. This can take significant time and
-> disk space. Only proceed if you want the hands-on experience.
+> **Warning:** The DRA example driver demo creates its own dedicated kind
+> cluster (separate from the `ai-workshop` cluster from Lab 00). It requires
+> Go, Docker (or Podman), Helm, and several minutes of build time. Only
+> proceed if you want the hands-on experience.
 
-#### Step 1: Clone and build the example driver
-
-```bash
-git clone --depth 1 https://github.com/kubernetes/kubernetes.git
-cd kubernetes/test/e2e/dra/test-driver
-# Build the driver image — this requires Go 1.22+ installed
-make build
-# Load the image into your kind cluster
-kind load docker-image registry.k8s.io/dra-example-driver:latest \
-  --name ai-workshop
-```
-
-#### Step 2: Deploy the driver
+#### Step 1: Clone the example driver
 
 ```bash
-# The driver deployment manifests are in the Kubernetes repo
-kubectl apply -f deploy/
+git clone https://github.com/kubernetes-sigs/dra-example-driver.git
+cd dra-example-driver
+git checkout v0.2.1
 ```
 
-#### Step 3: Apply the lab manifests
+#### Step 2: Build the driver image and create a demo kind cluster
 
-Once the driver is running and has published device resources:
+The repository ships demo scripts that build the driver and create a
+purpose-built kind cluster with DRA enabled:
+
+```bash
+./demo/build-driver.sh
+./demo/create-cluster.sh
+```
+
+Verify the cluster is healthy:
+
+```bash
+kubectl get pod -A
+```
+
+#### Step 3: Install the driver via Helm
+
+```bash
+helm upgrade -i \
+  --create-namespace --namespace dra-example-driver \
+  dra-example-driver deployments/helm/dra-example-driver
+```
+
+Verify the driver pods are running and ResourceSlices are published:
+
+```bash
+kubectl get pod -n dra-example-driver
+kubectl get resourceslice -o yaml
+```
+
+#### Step 4: Apply the lab manifests
+
+`create-cluster.sh` switches your kubeconfig to the demo cluster's context,
+but if you opened a new terminal or ran other `kubectl` commands since, confirm
+you are pointed at the demo cluster — not the `ai-workshop` cluster from Lab 00 —
+before applying anything:
+
+```bash
+# List contexts and switch to the demo cluster (kind prefixes contexts with "kind-").
+kubectl config get-contexts
+kubectl config use-context kind-dra-example-driver-cluster
+```
+
+From the cloud-native-ai-lab repo, apply the manifests against the demo cluster:
 
 ```bash
 kubectl apply -f manifests/device-class.yaml
@@ -138,7 +171,7 @@ kubectl apply -f manifests/resource-claim.yaml
 kubectl apply -f manifests/pod-with-claim.yaml
 ```
 
-#### Step 4: Observe allocation
+#### Step 5: Observe allocation
 
 ```bash
 kubectl get resourceclaim gpu-claim -o yaml
@@ -200,7 +233,9 @@ kubectl delete deviceclass simulated-gpu --ignore-not-found
 If you installed the DRA example driver:
 
 ```bash
-kubectl delete -f deploy/   # from the Kubernetes repo test-driver directory
+# From the dra-example-driver repo:
+helm uninstall dra-example-driver -n dra-example-driver
+./demo/delete-cluster.sh
 ```
 
 ## Next step

@@ -54,11 +54,11 @@ the running pods.
 
 ### Step 1: Install the JobSet controller
 
-Install JobSet v0.11.1 using the official release manifests:
+Install JobSet v0.12.0 using the official release manifests:
 
 ```bash
 kubectl apply --server-side -f \
-  https://github.com/kubernetes-sigs/jobset/releases/download/v0.11.1/manifests.yaml
+  https://github.com/kubernetes-sigs/jobset/releases/download/v0.12.0/manifests.yaml
 ```
 
 Wait for the controller to be ready:
@@ -208,7 +208,7 @@ kubectl delete jobset training-with-kueue -n team-a-ns --ignore-not-found
 
 # Remove the JobSet controller
 kubectl delete -f \
-  https://github.com/kubernetes-sigs/jobset/releases/download/v0.11.1/manifests.yaml
+  https://github.com/kubernetes-sigs/jobset/releases/download/v0.12.0/manifests.yaml
 ```
 
 ## Next step

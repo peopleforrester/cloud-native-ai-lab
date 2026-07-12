@@ -58,7 +58,7 @@ All code files (Python, shell scripts) start with a 2-line ABOUTME comment descr
 
 These corrections have been verified against official sources. They MUST be applied whenever these topics are mentioned:
 
-1. **JobSet version is v0.11.1** — NOT v0.10.1 as stated in some source materials.
+1. **JobSet version is v0.12.0** — NOT v0.10.1 as stated in some source materials.
 2. **MCP server count is 10,000+** — NOT 6,400. The official figure from Anthropic and the Linux Foundation is "over 10,000 published MCP servers."
 3. **InferenceModel CRD was renamed to InferenceObjective** — The Gateway API Inference Extension GA/v1 release renamed this CRD. Always use InferenceObjective when referring to the v1/GA API.
 4. **The 66% gen AI statistic** — This applies to "organizations already hosting generative AI models," not all surveyed organizations. Always include this qualifier.

@@ -16,9 +16,25 @@ spec:
   suspend: true
   template:
     spec:
+      # Pod-level securityContext applies to every container in the pod.
+      # This is a teaching example — the pattern is the same for any workload.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534          # nobody — present in nearly every base image
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: worker
           image: busybox:1.36
+          # Container-level securityContext layers on top of the pod-level block.
+          # Drop every capability; this workload only needs to read its own
+          # binaries and write to stdout, so an immutable root filesystem is safe.
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
           command: ["sh", "-c"]
           args:
             - |

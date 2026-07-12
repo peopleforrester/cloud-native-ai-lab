@@ -1,0 +1,6 @@
+# ABOUTME: Namespace that hosts the kagent Agent and MCPServer resources.
+# ABOUTME: All lab 06 workloads run here so cleanup is a single namespace delete.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: agents

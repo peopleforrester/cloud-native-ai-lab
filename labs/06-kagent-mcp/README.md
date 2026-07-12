@@ -71,7 +71,7 @@ You should see CRDs like `agents.kagent.dev` and `mcpservers.kagent.dev`.
 Create a namespace for agent workloads:
 
 ```bash
-kubectl create namespace agents
+kubectl apply -f manifests/namespace.yaml
 ```
 
 Apply the Agent manifest:

@@ -1,7 +1,6 @@
 # ABOUTME: Shared pytest fixtures for the cloud-native-ai-lab test suite.
 # ABOUTME: Provides repo root path and helper functions for file discovery.
 
-import os
 from pathlib import Path
 
 import pytest

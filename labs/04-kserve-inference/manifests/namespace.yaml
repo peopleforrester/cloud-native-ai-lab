@@ -1,0 +1,6 @@
+# ABOUTME: Namespace where the InferenceService and its Knative-managed pods run.
+# ABOUTME: Kept separate from system namespaces so KServe resources are easy to clean up.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: inference

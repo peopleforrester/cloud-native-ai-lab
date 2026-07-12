@@ -1,0 +1,11 @@
+# ABOUTME: Namespaces for the two teams in the Kueue fair-sharing demo.
+# ABOUTME: LocalQueues live in these namespaces and reference each team's ClusterQueue.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-a-ns
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-b-ns

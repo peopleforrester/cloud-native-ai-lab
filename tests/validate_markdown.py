@@ -4,8 +4,6 @@
 import re
 from pathlib import Path
 
-import pytest
-
 
 def test_no_empty_markdown_files(all_markdown_files: list[Path]) -> None:
     """No markdown file should be empty."""
@@ -47,9 +45,7 @@ def test_no_broken_heading_hierarchy(all_markdown_files: list[Path]) -> None:
         for heading in headings:
             level = len(heading)
             if prev_level > 0 and level > prev_level + 1:
-                issues.append(
-                    f"{md_file}: heading jumps from H{prev_level} to H{level}"
-                )
+                issues.append(f"{md_file}: heading jumps from H{prev_level} to H{level}")
                 break
             prev_level = level
 
