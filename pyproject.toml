@@ -12,8 +12,8 @@ python_classes = ["Test*"]
 
 [dependency-groups]
 dev = [
-    "mypy>=2.1",
-    "pytest>=9.1",
+    "mypy>=2.2",
+    "pytest>=9.1.1",
     "pyyaml>=6.0.3",
     "ruff>=0.15",
     "types-PyYAML>=6.0.12",

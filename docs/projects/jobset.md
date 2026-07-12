@@ -20,4 +20,4 @@ JobSet defines the shape of a distributed training run (how many workers, how ma
 - Related lab: [labs/03-jobset-training](../../labs/03-jobset-training)
 
 ## Last verified
-June 2026 — all facts checked against official sources.
+July 2026 — all facts checked against official sources.

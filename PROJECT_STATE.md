@@ -1,14 +1,29 @@
-# Project State: 2026-06 Version-Drift Refresh + PR #2 Review Cleanup
+# Project State: 2026-07 Version-Drift Refresh + PR #2 Review Cleanup
 
-**Date:** 2026-06-18
+**Date:** 2026-07-12
 **Branch:** staging (ahead of main; PR #2 open: staging → main)
 **Plan:** [docs/improvement-plan.md](docs/improvement-plan.md)
 **Verification method:** TDD — version-gating tests updated first (red), then
-content edited to green. Every upstream version was verified against the
-project's live GitHub releases on 2026-06-18 (not training data). Release-asset
+content edited to green. Every upstream version was re-verified against the
+project's live GitHub releases on 2026-07-12 (not training data). Release-asset
 URLs were confirmed reachable. **No live kind-cluster run was performed** — the
 manifests parse and the install URLs resolve, but the lab flows have not been
 executed end-to-end against a running cluster.
+
+## 2026-07-12 refresh (on top of the June pass)
+
+Re-verified all pins ~3 weeks after the June refresh. Drift found and applied:
+- Kueue 0.18.1 → **0.18.3** (lab 01 Helm; OCI chart tag is `0.18.3`, no `v`).
+- llm-d v0.7.0 → **v0.8.1** (docs; breaking-change note reworded to the v0.7 line).
+- actions/checkout v6.0.3 → **v7.0.0** (major; the fork-PR-checkout hardening does
+  not affect this push/pull_request workflow), setup-uv v8.2.0 → **v8.3.2**.
+- Dev toolchain: mypy 2.1 → **2.2.0**, pytest 9.1 → **9.1.1**, ruff → **0.15.21**.
+- All five project one-pager "Last verified" footers re-stamped to July 2026.
+
+No drift (re-confirmed current 2026-07-12): JobSet v0.12.0, LeaderWorkerSet v0.9.0,
+KServe v0.19.0, Knative Serving + net-kourier knative-v1.22.1, kagent tools 0.2.1,
+kind v0.32.0, kindest/node v1.36.1, Kubernetes 1.36.x, MCP spec 2025-11-25,
+Gateway API Inference Extension v1.5.0.
 
 ## Test status
 

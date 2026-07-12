@@ -21,4 +21,4 @@ KServe sits at the top of the inference stack. It uses Knative for scale-to-zero
 - Related lab: [labs/04-kserve-inference](../../labs/04-kserve-inference)
 
 ## Last verified
-June 2026 — all facts checked against official sources.
+July 2026 — all facts checked against official sources.

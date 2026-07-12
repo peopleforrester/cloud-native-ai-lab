@@ -20,4 +20,4 @@ LeaderWorkerSet handles the Pod topology for multi-host inference workloads, com
 - Related lab: No dedicated lab — referenced in context of [labs/03-jobset-training](../../labs/03-jobset-training) and [labs/04-kserve-inference](../../labs/04-kserve-inference)
 
 ## Last verified
-June 2026 — all facts checked against official sources.
+July 2026 — all facts checked against official sources.
