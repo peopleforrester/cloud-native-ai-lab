@@ -45,12 +45,28 @@ def test_test_job_has_timeout(repo_root: Path) -> None:
 
 
 def test_workflow_runs_lint_gates(repo_root: Path) -> None:
-    """Workflow must run ruff check and ruff format --check."""
+    """Workflow must run ruff check, ruff format --check, and mypy as explicit gates."""
     workflow = _load_workflow(repo_root)
     steps = workflow.get("jobs", {}).get("test", {}).get("steps", [])
     run_lines = " ".join(step.get("run", "") for step in steps if "run" in step)
     assert "ruff check" in run_lines, "Workflow must run 'ruff check'"
     assert "ruff format --check" in run_lines, "Workflow must run 'ruff format --check'"
+    assert "mypy" in run_lines, "Workflow must run 'mypy' as an explicit fail-fast gate"
+
+
+def test_checkout_disables_credential_persistence(repo_root: Path) -> None:
+    """actions/checkout must set persist-credentials: false — this CI never pushes,
+    so leaving the GITHUB_TOKEN in .git/config is needless credential exposure."""
+    workflow = _load_workflow(repo_root)
+    steps = workflow.get("jobs", {}).get("test", {}).get("steps", [])
+    checkout = next(
+        (s for s in steps if isinstance(s.get("uses"), str) and "actions/checkout@" in s["uses"]),
+        None,
+    )
+    assert checkout is not None, "Workflow must use actions/checkout"
+    assert checkout.get("with", {}).get("persist-credentials") is False, (
+        "actions/checkout must set with.persist-credentials: false"
+    )
 
 
 def test_actions_pinned_to_commit_sha(repo_root: Path) -> None:
