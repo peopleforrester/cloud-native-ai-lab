@@ -28,4 +28,4 @@ AAIF operates above the stack — it governs the standards (MCP, goose, AGENTS.m
 - Related lab: [labs/06-kagent-mcp](../../labs/06-kagent-mcp/) (context — the lab uses MCP, which AAIF governs)
 
 ## Last verified
-March 2026 — all facts checked against official sources.
+March 2026. All facts checked against official sources.

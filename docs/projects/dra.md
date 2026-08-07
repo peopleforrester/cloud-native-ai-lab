@@ -21,4 +21,4 @@ DRA sits at the Kubernetes scheduler level — it is the foundation that Kueue, 
 - Related lab: [labs/02-dra-resource-claims](../../labs/02-dra-resource-claims)
 
 ## Last verified
-March 2026 — all facts checked against official sources.
+July 2026. All facts checked against official sources.

@@ -20,4 +20,4 @@ Knative provides the serverless runtime layer beneath KServe, handling autoscali
 - Related lab: [labs/04-kserve-inference](../../labs/04-kserve-inference) (Knative is used as KServe's backend)
 
 ## Last verified
-March 2026 — all facts checked against official sources.
+July 2026. All facts checked against official sources.
