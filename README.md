@@ -17,7 +17,7 @@ services, you can start at Lab 00 today. No machine learning background needed.
 | **7 progressive labs** | Kueue, DRA, JobSet, KServe, Gateway API Inference, kagent and MCP |
 | **Runs on a laptop** | 3-node `kind` cluster, about 8GB RAM, no cloud spend |
 | **72 automated tests** | version pins, links, manifests, and security context are CI-gated ([tests/](tests/)) |
-| **11 project one-pagers** | each dated and re-verified against upstream releases ([docs/projects/](docs/projects/)) |
+| **11 project one-pagers** | each carrying its own verification date ([docs/projects/](docs/projects/)) |
 
 Built as the companion resource to a Cloud Native University talk at
 [KubeCon + CloudNativeCon Europe 2026](https://events.linuxfoundation.org/kubecon-cloudnativecon-europe/),

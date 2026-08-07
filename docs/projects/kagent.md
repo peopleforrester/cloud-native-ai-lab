@@ -20,4 +20,4 @@ kagent operates at the application layer above the inference stack — it consum
 - Related lab: [labs/06-kagent-mcp](../../labs/06-kagent-mcp/)
 
 ## Last verified
-March 2026 — all facts checked against official sources.
+July 2026. All facts checked against official sources.

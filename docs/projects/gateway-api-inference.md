@@ -21,4 +21,4 @@ It sits at the ingress layer, in front of inference backends like KServe and llm
 - Related lab: [labs/05-gateway-routing](../../labs/05-gateway-routing/)
 
 ## Last verified
-March 2026 — all facts checked against official sources.
+July 2026. All facts checked against official sources.

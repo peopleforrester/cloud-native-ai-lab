@@ -21,4 +21,4 @@ llm-d sits behind KServe (v0.19.0 integrates directly with it) as the inference 
 - Related lab: [labs/04-kserve-inference](../../labs/04-kserve-inference/) — covers KServe integration with llm-d
 
 ## Last verified
-July 2026 — all facts checked against official sources.
+July 2026. All facts checked against official sources.

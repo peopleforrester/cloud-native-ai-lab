@@ -20,4 +20,4 @@ Kueue manages the queue and admission decisions for GPU workloads, sitting above
 - Related lab: [labs/01-kueue-basics](../../labs/01-kueue-basics)
 
 ## Last verified
-July 2026 — all facts checked against official sources.
+July 2026. All facts checked against official sources.

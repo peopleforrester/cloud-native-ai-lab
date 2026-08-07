@@ -20,4 +20,4 @@ MCP is the protocol layer that kagent uses to connect agents to tools — it def
 - Related lab: [labs/06-kagent-mcp](../../labs/06-kagent-mcp/)
 
 ## Last verified
-March 2026 — all facts checked against official sources.
+July 2026. All facts checked against official sources.
