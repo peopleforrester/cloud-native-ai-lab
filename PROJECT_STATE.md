@@ -10,6 +10,15 @@ URLs were confirmed reachable. **No live kind-cluster run was performed** — th
 manifests parse and the install URLs resolve, but the lab flows have not been
 executed end-to-end against a running cluster.
 
+## Outbound cross-repo requests
+
+- **[mrf-engagement-orchestrator#57](https://github.com/peopleforrester/mrf-engagement-orchestrator/issues/57)**:
+  article "The version sweep that rewrote a talk I had already given", drafted
+  from this repo's commits and handed to the engagement repo to publish to
+  michaelrishiforrester.com and fan out to social. That repo owns the Micropub
+  path; this one owns the evidence. Expect the published URL back as a comment
+  on that issue when it ships.
+
 ## 2026-07-12 refresh (on top of the June pass)
 
 Re-verified all pins ~3 weeks after the June refresh. Drift found and applied:
