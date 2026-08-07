@@ -5,6 +5,22 @@ from pathlib import Path
 
 import pytest
 
+# Directories that live in the working tree but are never published: gitignored
+# local archives and transcripts that may carry client, employer, or third-party
+# personal information. Content gates must not read or grade them.
+LOCAL_ONLY_PATTERNS = [
+    "claude-ai-context",
+    "transcripts",
+]
+
+EXCLUDED_PATTERNS = [
+    "compass_artifact",
+    "node_modules",
+    "__pycache__",
+    ".git/",
+    *LOCAL_ONLY_PATTERNS,
+]
+
 
 @pytest.fixture
 def repo_root() -> Path:
@@ -15,12 +31,7 @@ def repo_root() -> Path:
 @pytest.fixture
 def all_markdown_files(repo_root: Path) -> list[Path]:
     """Return all markdown files in the repo, excluding source material originals."""
-    excluded_patterns = [
-        "compass_artifact",
-        "node_modules",
-        "__pycache__",
-        ".git/",
-    ]
+    excluded_patterns = EXCLUDED_PATTERNS
     files = []
     for md_file in repo_root.rglob("*.md"):
         rel = str(md_file.relative_to(repo_root))
@@ -44,7 +55,7 @@ def all_yaml_files(repo_root: Path) -> list[Path]:
 @pytest.fixture
 def docs_markdown_files(repo_root: Path) -> list[Path]:
     """Return markdown files under docs/ that are final content (not source originals)."""
-    excluded_patterns = ["compass_artifact"]
+    excluded_patterns = EXCLUDED_PATTERNS
     docs_dir = repo_root / "docs"
     if not docs_dir.exists():
         return []

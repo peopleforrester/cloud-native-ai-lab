@@ -48,3 +48,7 @@ credentials.json
 
 # Imported context archive from claude.ai migration — local Claude Code context only, never publish (public repo).
 claude-ai-context/
+
+# Local meeting/session transcripts. May contain client, employer, and
+# third-party personal information. Never publish (public repo).
+transcripts/

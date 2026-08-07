@@ -2,9 +2,14 @@
 
 ## A 15-Minute Talk for Cloud Native University @ KubeCon + CloudNativeCon Europe 2026 — Amsterdam
 
-**Speaker:** Michael Forrester — KodeKloud
+**Speaker:** Michael Forrester, KodeKloud
 **Program:** Cloud Native University
-**Date:** Tuesday, March 24, 2026 — 13:20 | RAI Amsterdam Convention Center
+**Date:** Tuesday, March 24, 2026, 13:20 | RAI Amsterdam Convention Center
+
+> **This is the script as delivered on 24 March 2026.** Version numbers below
+> record what was current on stage that day and are deliberately frozen. They
+> are not maintained. For current versions see the
+> [project one-pagers](projects/), which carry their own verification dates.
 
 ---
 
@@ -73,7 +78,7 @@ That's the scheduling foundation. DRA for devices, Kueue for admission, JobSet f
 
 **Knative** provides the scale-to-zero capability underneath KServe. It graduated from CNCF in October 2025. Scale-to-zero means when nobody is sending requests, your inference pods scale down to zero and stop costing you GPU money. When a request comes in, they spin back up.
 
-**llm-d** is the new project to know about for LLM inference specifically. Launched by Red Hat with contributions from Google Cloud, IBM Research, NVIDIA, CoreWeave, AMD, Cisco, and Hugging Face — that contributor list alone tells you the industry is serious about this. It's a Kubernetes-native framework for distributed LLM inference. It handles things like KV cache offloading (keeping frequently used context in fast memory), cache-aware LoRA routing (sending requests to the server that already has the right adapter loaded), and scale-to-zero. KServe v0.19.0 integrates directly with llm-d. You don't need to use llm-d on day one, but it's where high-performance LLM serving is headed on Kubernetes.
+**llm-d** is the new project to know about for LLM inference specifically. Launched by Red Hat with contributions from Google Cloud, IBM Research, NVIDIA, CoreWeave, AMD, Cisco, and Hugging Face — that contributor list alone tells you the industry is serious about this. It's a Kubernetes-native framework for distributed LLM inference. It handles things like KV cache offloading (keeping frequently used context in fast memory), cache-aware LoRA routing (sending requests to the server that already has the right adapter loaded), and scale-to-zero. KServe v0.17.0 integrates directly with llm-d. You don't need to use llm-d on day one, but it's where high-performance LLM serving is headed on Kubernetes.
 
 **The Gateway API Inference Extension** (now GA) makes routing smart. Instead of dumb round-robin load balancing, it can route requests based on which model you're calling, how full each server's KV cache is, which LoRA adapter you need, and how critical the request is. GKE's implementation reports 30% cost savings and 60% lower tail latency.
 
@@ -163,7 +168,7 @@ Welcome to KubeCon. You're not behind. Go make AI boring.
 | CNCF Annual Survey 2026 | cncf.io/announcements/2026/01/20 |
 | Kubernetes 1.35 Release Notes | kubernetes.io/blog/2025/12/17 |
 | DRA Documentation | kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation |
-| KServe v0.19.0 | kserve.github.io/kserve |
+| KServe v0.17.0 | kserve.github.io/kserve |
 | llm-d | github.com/llm-d/llm-d |
 | Gateway API Inference Extension | gateway-api-inference-extension.sigs.k8s.io |
 | Agentic AI Foundation | aaif.io |

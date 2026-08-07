@@ -1,8 +1,29 @@
 # Cloud Native AI Lab
 
-A hands-on lab for learning AI workloads on Kubernetes — from GPU scheduling to model serving to AI agents.
+![Cloud Native AI Lab](assets/hero.png)
 
-Created as a companion to a Cloud Native University talk at [KubeCon + CloudNativeCon Europe 2026](https://events.linuxfoundation.org/kubecon-cloudnativecon-europe/) in Amsterdam, designed as a long-lived community resource.
+[![tests](https://github.com/peopleforrester/cloud-native-ai-lab/actions/workflows/test.yml/badge.svg)](https://github.com/peopleforrester/cloud-native-ai-lab/actions/workflows/test.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
+Give a Kubernetes engineer a laptop and seven labs, and watch them schedule GPUs,
+coordinate distributed training, and serve a model behind an autoscaling API.
+No GPU required, no cloud bill.
+
+Every lab runs on a local `kind` cluster. If you know pods, deployments, and
+services, you can start at Lab 00 today. No machine learning background needed.
+
+| What you get | |
+|---|---|
+| **7 progressive labs** | Kueue, DRA, JobSet, KServe, Gateway API Inference, kagent and MCP |
+| **Runs on a laptop** | 3-node `kind` cluster, about 8GB RAM, no cloud spend |
+| **72 automated tests** | version pins, links, manifests, and security context are CI-gated ([tests/](tests/)) |
+| **11 project one-pagers** | each dated and re-verified against upstream releases ([docs/projects/](docs/projects/)) |
+
+Built as the companion resource to a Cloud Native University talk at
+[KubeCon + CloudNativeCon Europe 2026](https://events.linuxfoundation.org/kubecon-cloudnativecon-europe/),
+delivered 24 March 2026 at the RAI in Amsterdam, and maintained since as a
+standing community resource. The
+[talk outline](docs/talk-outline.md) is the script as delivered.
 
 ## Who is this for?
 
@@ -25,7 +46,7 @@ Kubernetes practitioners who are new to AI/ML workloads. If you know pods, deplo
 |-----|-------|-------------------|
 | [00](labs/00-setup/README.md) | Environment Setup | Create a kind cluster configured for AI workload labs |
 | [01](labs/01-kueue-basics/README.md) | Kueue Basics | Fair sharing, admission control, and preemption for GPU-like workloads |
-| [02](labs/02-dra-resource-claims/README.md) | DRA Resource Claims | Declarative device allocation — how Kubernetes replaces the old device plugin model |
+| [02](labs/02-dra-resource-claims/README.md) | DRA Resource Claims | Declarative device allocation, and how Kubernetes replaces the old device plugin model |
 | [03](labs/03-jobset-training/README.md) | JobSet Training | Coordinated multi-pod training with failure handling |
 | [04](labs/04-kserve-inference/README.md) | KServe Inference | Deploy a model, serve it behind an API, and watch it autoscale |
 | [05](labs/05-gateway-routing/README.md) | Gateway API Inference Routing | Model-aware traffic routing with InferenceObjective and InferencePool |
@@ -60,8 +81,8 @@ One-page summaries of every project covered in the labs:
 | [AAIF](docs/projects/aaif.md) | Agentic AI Foundation | Linux Foundation |
 
 Full reports:
-- [Cloud-Native AI Landscape Report](docs/landscape-report.md) — comprehensive ecosystem overview (March 2026)
-- [Talk Outline](docs/talk-outline.md) — the 15-minute KubeCon EU 2026 talk
+- [Cloud-Native AI Landscape Report](docs/landscape-report.md): ecosystem overview, as researched in March 2026
+- [Talk Outline](docs/talk-outline.md): the 15-minute KubeCon EU 2026 talk, as delivered
 
 ## Prerequisites
 
@@ -98,8 +119,8 @@ See [CONTRIBUTING.md](.github/CONTRIBUTING.md). All work targets the `staging` b
 
 ## Credit
 
-**Author:** Michael Forrester — KodeKloud. Research and content developed with [Claude](https://claude.ai) (Anthropic).
+**Author:** Michael Forrester, KodeKloud.
 
 ## License
 
-This project is licensed under the Apache License 2.0 — see [LICENSE](LICENSE) for details.
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
