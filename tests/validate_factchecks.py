@@ -9,11 +9,13 @@ import pytest
 
 def _read_content_files(repo_root: Path) -> list[tuple[Path, str]]:
     """Read all final content markdown files (excluding source originals and tests)."""
-    # claude-ai-context/ is a local-only imported research archive (gitignored,
-    # never published) that intentionally preserves pre-correction source facts.
+    # Local-only directories (claude-ai-context/, transcripts/) are gitignored and
+    # never published: the archive intentionally preserves pre-correction source
+    # facts, and transcripts may carry third-party personal information.
     excluded_patterns = [
         "compass_artifact",
         "claude-ai-context",
+        "transcripts",
         "node_modules",
         "__pycache__",
         ".git/",
