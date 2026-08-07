@@ -1,6 +1,6 @@
 # Cloud Native AI Lab
 
-![Cloud Native AI Lab](assets/hero.png)
+![Cloud Native AI Lab, presented by Michael Forrester of KodeKloud](assets/hero.jpg)
 
 [![tests](https://github.com/peopleforrester/cloud-native-ai-lab/actions/workflows/test.yml/badge.svg)](https://github.com/peopleforrester/cloud-native-ai-lab/actions/workflows/test.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
