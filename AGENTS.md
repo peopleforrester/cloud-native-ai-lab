@@ -4,8 +4,22 @@
 
 This is `cloud-native-ai-lab` — a hands-on learning resource for Kubernetes engineers who are new to AI workloads. It was created as a companion to a Cloud Native University talk at KubeCon EU 2026 but is designed as a long-lived community resource.
 
-**Author:** Michael Forrester — KodeKloud
+**Author:** Michael Forrester, KodeKloud
+**Stack:** Python
 **License:** Apache 2.0
+
+## Commands
+
+| Task | Command |
+|---|---|
+| Install | `uv sync --dev` |
+| Test | `uv run pytest` |
+| Lint | `uv run ruff check .` |
+| Format | `uv run ruff format .` |
+| Type check | `uv run mypy tests/` |
+
+All four gates run in CI on every push. A change that breaks any of them does
+not land.
 
 ## Audience
 
