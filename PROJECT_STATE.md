@@ -115,6 +115,11 @@ relative symlink to it; `normalize-agents-md.sh` classifies the repo as IDEAL.
   michaelrishiforrester.com and social fan-out. That repo owns the Micropub
   path; this one owns the evidence. Expect the published URL back as a comment
   on that issue.
+- **[KCD_Texas_2026_Workshop#23](https://github.com/peopleforrester/KCD_Texas_2026_Workshop/issues/23)**:
+  refresh that repo's PROJECT_STATE.md and create its decisions.md, handed over
+  rather than committed directly. Its state file is already on the lifecycle
+  schema, so it needs a body refresh, not a migration. The issue carries the
+  current facts so nothing has to be re-derived.
 - **[mrf-engagement-orchestrator#75](https://github.com/peopleforrester/mrf-engagement-orchestrator/issues/75)**:
   commented to confirm this repo is showcase-ready for the public Projects page,
   including the warning about the untracked-but-unignored directory, which is
