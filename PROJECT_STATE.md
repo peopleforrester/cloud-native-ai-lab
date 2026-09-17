@@ -23,8 +23,8 @@ Recording it as `pending` would misrepresent shipped and promoted work, so it is
 recorded here as an unsealed approval instead. Future plans in this repo should
 seal properly via `/prd`.
 
-**Date:** 2026-08-30
-**Branch:** staging. `main` and `staging` are identical at `9313345`; working tree clean, nothing unpushed.
+**Date:** 2026-09-17
+**Branch:** staging. `main` and `staging` are identical at `ca35133`; working tree clean, nothing unpushed.
 **Repo:** [peopleforrester/cloud-native-ai-lab](https://github.com/peopleforrester/cloud-native-ai-lab), public, Apache 2.0, release `v1.0.0`.
 **Plan:** [docs/improvement-plan.md](docs/improvement-plan.md)
 
@@ -39,7 +39,7 @@ URLs resolve; behaviour on a running cluster is unverified.
 
 | Check | State |
 |---|---|
-| Tests | 72 passing across 9 validator modules |
+| Tests | 74 passing across 9 validator modules |
 | Lint, format, types | `ruff check`, `ruff format --check`, `mypy tests/` all green |
 | CI on `main` | success |
 | Open issues | 0 |
@@ -47,27 +47,27 @@ URLs resolve; behaviour on a running cluster is unverified.
 | Dependabot alerts | 0 |
 | repo-showcase checker | clean, exit 0 |
 
-Python 3.12.13, pinned via `.python-version`. Toolchain at mypy 2.2, pytest
-9.1.1, ruff 0.15.21. CI actions SHA-pinned: `actions/checkout` v7.0.1,
-`astral-sh/setup-uv` v8.3.2.
+Python 3.12.13, pinned via `.python-version`. Toolchain at mypy 2.3, pytest
+9.1.1, ruff 0.16.8. CI actions SHA-pinned: `actions/checkout` v7.0.1,
+`astral-sh/setup-uv` v10.1.0.
 
 ## Upstream pins, current
 
-Last full re-verification 2026-07-12. Two refreshes have run since April, about
-seven weeks apart and then three.
+Last full re-verification 2026-09-17. Three refreshes have run since April, at
+roughly seven, three and nine week intervals.
 
 | Project | Pin |
 |---|---|
-| Kueue (lab 01 Helm) | 0.18.3 |
+| Kueue (lab 01 Helm) | 0.19.4 |
 | JobSet (lab 03) | v0.12.0 |
-| KServe (lab 04) | v0.19.0 |
-| Knative Serving, net-kourier (lab 04) | knative-v1.22.1 |
-| LeaderWorkerSet (docs) | v0.9.0 |
-| llm-d (docs) | v0.8.1, with the v0.7 breaking-change note |
+| KServe (lab 04) | v0.20.0 |
+| Knative Serving, net-kourier (lab 04) | knative-v1.23.0 |
+| LeaderWorkerSet (docs) | v0.10.0 |
+| llm-d (docs) | v0.9.0 |
 | kagent tools image (lab 06) | 0.2.1 |
-| kind, kindest/node (lab 00) | v0.32.0, v1.36.1 |
-| MCP spec | 2025-11-25 |
-| Gateway API Inference Extension | v1.5.0 |
+| kind, kindest/node (lab 00) | v0.33.0, v1.37.0 (digest-pinned) |
+| MCP spec | 2026-07-28 |
+| Gateway API Inference Extension | v1.6.1 |
 
 ## Work completed since the July refresh
 
@@ -80,7 +80,7 @@ there" to something a stranger can evaluate:
   2:1 rather than the hero's 16:9 and enforces a hard 1MB ceiling.
 - First screen rebuilt: one-line hook, CI and licence badges backed by real
   artifacts, and a what-you-get table whose every number traces to something
-  committed (7 labs, 3-node kind cluster, 72 CI-gated tests, 11 one-pagers).
+  committed (7 labs, 3-node kind cluster, 74 CI-gated tests, 11 one-pagers).
 - The talk is framed as delivered on 24 March 2026 at the RAI in Amsterdam,
   verified against CNCF's published dates for KubeCon EU 2026.
 
@@ -106,6 +106,26 @@ unpublished local files. AI attribution was removed from the README.
 **Hygiene.** AGENTS.md is the single real guidance file with CLAUDE.md a
 relative symlink to it; `normalize-agents-md.sh` classifies the repo as IDEAL.
 `tests/__init__.py` carries its ABOUTME header.
+
+## September 2026 currency sweep
+
+Nine weeks of drift closed. Kueue to 0.19.4, KServe to v0.20.0, Knative and
+net-kourier to knative-v1.23.0, LeaderWorkerSet to v0.10.0, llm-d to v0.9.0,
+kind to v0.33.0 with the node image at v1.37.0 pinned by digest. Toolchain to
+ruff 0.16.8 and mypy 2.3.1, and setup-uv across two majors to v10.1.0.
+Kubernetes 1.37.0 is now stable upstream.
+
+Two findings were larger than version numbers:
+
+- **The MCP spec advanced to 2026-07-28**, which removes the `initialize`
+  handshake and session header in favour of a stateless core, replaces
+  server-initiated calls with multi round-trip requests, and deprecates
+  Sampling, Roots and Logging. The one-pager now says what changed rather than
+  only carrying a new date.
+- **Lab 05's InferenceObjective manifest was never valid.** It declared a kind
+  under an apiVersion no GAIE release has ever served, with the field set of a
+  different, retired CRD. Corrected against the llm-d-router CRD and gated by
+  two new tests. Full reasoning in `decisions.md`.
 
 ## Outbound cross-repo requests
 
@@ -139,11 +159,13 @@ Nothing is blocked on code. What remains needs a person:
 
 ## Known limits, carried forward
 
-- **No live-cluster validation.** KServe 0.17 to 0.19, Knative 1.21 to 1.22,
-  Kueue 0.17 to 0.18 and JobSet 0.11 to 0.12 each crossed a minor boundary and
-  may carry CRD or API changes only a cluster run would surface. llm-d v0.8.1
-  sits on the v0.7 line's breaking changes (NVIDIA driver 580 or newer,
-  standalone default mode), noted in its one-pager but not exercised.
+- **No live-cluster validation.** Every refresh has crossed minor boundaries
+  without a cluster run. The September one matters most: Kueue 0.19 enables
+  `WaitForPodsReady` by default with a 30 minute timeout, which changes what
+  admission means on a slow cluster, and that is documented in lab 01 rather
+  than observed. llm-d sits on the v0.7 line's breaking changes (NVIDIA driver
+  580 or newer, standalone default mode), noted in its one-pager but not
+  exercised.
 - **`docs/projects/aaif.md` is still dated March 2026.** It was not re-verified
   and was deliberately not stamped.
 - **Version pins in teaching content drift every six to eight weeks.** Two
