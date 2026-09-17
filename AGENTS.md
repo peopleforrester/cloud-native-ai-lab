@@ -74,7 +74,7 @@ These corrections have been verified against official sources. They MUST be appl
 
 1. **JobSet version is v0.12.0** — NOT v0.10.1 as stated in some source materials.
 2. **MCP server count is 10,000+** — NOT 6,400. The official figure from Anthropic and the Linux Foundation is "over 10,000 published MCP servers."
-3. **InferenceModel CRD was renamed to InferenceObjective** — The Gateway API Inference Extension GA/v1 release renamed this CRD. Always use InferenceObjective when referring to the v1/GA API.
+3. **InferenceObjective is an llm-d alpha CRD, not a GAIE GA one.** GAIE v1.0.0 replaced `InferenceModel` with `InferenceObjective`, but only `InferencePool` was promoted to the GA group `inference.networking.k8s.io/v1` in that release. `InferenceObjective` stayed experimental and GAIE v1.6.0 removed it entirely; it now ships from llm-d-router as `llm-d.ai/v1alpha2`. Never write `InferenceObjective` under `inference.networking.k8s.io/v1`: that has never been served by any release. Its spec is `poolRef` plus an integer `priority`; `modelName`, `targetModels` and `criticality` belonged to the retired `InferenceModel`.
 4. **The 66% gen AI statistic** — This applies to "organizations already hosting generative AI models," not all surveyed organizations. Always include this qualifier.
 5. **llm-d was launched by Red Hat** — Founding contributors are CoreWeave, Google Cloud, IBM Research, and NVIDIA. Partners include AMD, Cisco, Hugging Face, Intel, Lambda, and Mistral AI. Do NOT present all companies as equal "co-creators."
 

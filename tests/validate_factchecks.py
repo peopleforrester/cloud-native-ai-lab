@@ -6,6 +6,8 @@ from pathlib import Path
 
 import pytest
 
+EXCLUDED_DIRS = ["claude-ai-context", "transcripts", "node_modules", "__pycache__", ".git/"]
+
 
 def _read_content_files(repo_root: Path) -> list[tuple[Path, str]]:
     """Read all final content markdown files (excluding source originals and tests)."""
@@ -144,6 +146,40 @@ class TestInferenceObjective:
             if "InferenceObjective" in content:
                 return
         pytest.fail("InferenceObjective not found in any content file")
+
+    def test_inference_objective_uses_llm_d_group(self, repo_root: Path) -> None:
+        """Any manifest declaring kind InferenceObjective must use the llm-d group.
+
+        InferenceObjective was never served by the Gateway API Inference
+        Extension GA group. It lived at inference.networking.x-k8s.io/v1alpha2
+        from GAIE v1.0.0 through v1.5.0, was removed in v1.6.0, and now lives in
+        llm-d-router at llm-d.ai/v1alpha2. A manifest claiming it under
+        inference.networking.k8s.io/v1 has never been appliable against any
+        release, which is exactly the error this gate exists to catch.
+        """
+        bad: list[str] = []
+        for yaml_file in repo_root.rglob("*.yaml"):
+            rel = str(yaml_file.relative_to(repo_root))
+            if any(skip in rel for skip in EXCLUDED_DIRS):
+                continue
+            text = yaml_file.read_text()
+            if "kind: InferenceObjective" not in text:
+                continue
+            if "apiVersion: llm-d.ai/v1alpha2" not in text:
+                declared = next(
+                    (ln.strip() for ln in text.splitlines() if ln.startswith("apiVersion:")),
+                    "(none)",
+                )
+                bad.append(f"{rel}: declares {declared}, expected apiVersion: llm-d.ai/v1alpha2")
+        assert not bad, "InferenceObjective must use llm-d.ai/v1alpha2:\n" + "\n".join(bad)
+
+    def test_inference_pool_stays_on_ga_group(self, repo_root: Path) -> None:
+        """InferencePool is the kind that actually went GA, and stays there."""
+        pool = repo_root / "labs" / "05-gateway-routing" / "manifests" / "inference-pool.yaml"
+        text = pool.read_text()
+        assert "apiVersion: inference.networking.k8s.io/v1" in text, (
+            "InferencePool must remain on the GA group inference.networking.k8s.io/v1"
+        )
 
 
 class TestGenAIStatQualifier:

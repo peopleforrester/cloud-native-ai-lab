@@ -16,7 +16,7 @@ services, you can start at Lab 00 today. No machine learning background needed.
 |---|---|
 | **7 progressive labs** | Kueue, DRA, JobSet, KServe, Gateway API Inference, kagent and MCP |
 | **Runs on a laptop** | 3-node `kind` cluster, about 8GB RAM, no cloud spend |
-| **72 automated tests** | version pins, links, manifests, and security context are CI-gated ([tests/](tests/)) |
+| **74 automated tests** | version pins, links, manifests, and security context are CI-gated ([tests/](tests/)) |
 | **11 project one-pagers** | each carrying its own verification date ([docs/projects/](docs/projects/)) |
 
 Built as the companion resource to a Cloud Native University talk at
@@ -49,7 +49,7 @@ Kubernetes practitioners who are new to AI/ML workloads. If you know pods, deplo
 | [02](labs/02-dra-resource-claims/README.md) | DRA Resource Claims | Declarative device allocation, and how Kubernetes replaces the old device plugin model |
 | [03](labs/03-jobset-training/README.md) | JobSet Training | Coordinated multi-pod training with failure handling |
 | [04](labs/04-kserve-inference/README.md) | KServe Inference | Deploy a model, serve it behind an API, and watch it autoscale |
-| [05](labs/05-gateway-routing/README.md) | Gateway API Inference Routing | Model-aware traffic routing with InferenceObjective and InferencePool |
+| [05](labs/05-gateway-routing/README.md) | Gateway API Inference Routing | Model-aware traffic routing with InferencePool and llm-d InferenceObjective |
 | [06](labs/06-kagent-mcp/README.md) | kagent and MCP | Deploy AI agents on Kubernetes with the Model Context Protocol |
 
 ### Optional: real GPU clusters
@@ -75,7 +75,7 @@ One-page summaries of every project covered in the labs:
 | [KServe](docs/projects/kserve.md) | Model serving platform | CNCF Incubating (v0.20.0) |
 | [Knative](docs/projects/knative.md) | Scale-to-zero serverless | CNCF Graduated |
 | [llm-d](docs/projects/llm-d.md) | Distributed LLM inference | Launched by Red Hat (v0.9.0) |
-| [Gateway API Inference](docs/projects/gateway-api-inference.md) | Model-aware routing | GA (InferenceObjective + InferencePool) |
+| [Gateway API Inference](docs/projects/gateway-api-inference.md) | Model-aware routing | InferencePool GA; InferenceObjective moved to llm-d |
 | [kagent](docs/projects/kagent.md) | Kubernetes-native AI agents | CNCF Sandbox |
 | [MCP](docs/projects/mcp.md) | Model Context Protocol | AAIF / Linux Foundation |
 | [AAIF](docs/projects/aaif.md) | Agentic AI Foundation | Linux Foundation |

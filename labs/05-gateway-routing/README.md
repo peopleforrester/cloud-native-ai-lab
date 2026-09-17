@@ -34,13 +34,25 @@ capabilities. The pool's selector picks pods by label, and the extension's
 endpoint picker considers factors like model affinity, queue depth, and KV-cache
 utilization when choosing which pod handles each request.
 
-An **InferenceObjective** (renamed from InferenceModel at GA) defines what a
-consumer wants: a model name, a target latency, and a criticality level. It maps
-a user-facing model name to one or more backend models in a pool. This lets you
-do things like route `our-coding-model` to different backing models based on
-criticality — critical requests go to a dedicated pool while best-effort requests
-share a spot pool. The gateway reads the model name from the request body
-(OpenAI-compatible format) and routes accordingly.
+An **InferenceObjective** assigns a routing priority to requests served by a
+pool. Its spec is two fields: a `poolRef` naming the pool, and an integer
+`priority` where higher wins and an unset value counts as zero. That lets you
+express that production traffic outranks batch traffic against the same pool.
+
+The two CRDs no longer come from the same project, which is the part most
+tutorials still get wrong:
+
+| CRD | Owner | apiVersion | Stability |
+|---|---|---|---|
+| InferencePool | Gateway API Inference Extension | `inference.networking.k8s.io/v1` | GA |
+| InferenceObjective | llm-d (llm-d-router) | `llm-d.ai/v1alpha2` | alpha |
+
+GAIE v1.0.0 replaced the older `InferenceModel` kind with `InferenceObjective`,
+but only `InferencePool` was promoted to the GA group in that release. The
+objective stayed experimental, and GAIE v1.6.0 removed it and handed it to
+llm-d. There has never been an `InferenceObjective` served at
+`inference.networking.k8s.io/v1`, so any manifest you find claiming that
+apiVersion has never worked.
 
 > **Honest note about this lab:** Fully demonstrating model-aware routing
 > requires running real inference backends with GPU resources. On a kind cluster
@@ -120,17 +132,27 @@ kubectl describe inferencepool llm-pool -n inference-demo
 
 ### Step 4: Examine the InferenceObjective manifest
 
-> **Important:** This CRD was renamed from `InferenceModel` to
-> `InferenceObjective` at GA. If you see older tutorials or blog posts
-> referencing `InferenceModel`, they are using the pre-GA name.
+> **Important:** older tutorials and blog posts are unreliable on this CRD.
+> `InferenceModel` was replaced by `InferenceObjective` in GAIE v1.0.0, and
+> material written before v1.6.0 shows it under a
+> `inference.networking.x-k8s.io` or `inference.networking.k8s.io` group. It
+> now ships from llm-d as `llm-d.ai/v1alpha2`, and its field set is much
+> smaller than that of the replaced `InferenceModel`.
 
-Open `manifests/inference-objective.yaml` and read the comments. The key fields
-are:
+Open `manifests/inference-objective.yaml` and read the comments. The spec is
+only two fields:
 
-- **modelName**: The user-facing model name that clients use in API requests
-- **targetModels**: The actual backend model(s) that serve this objective
-- **criticality**: Controls routing priority (Critical vs BestEffort)
-- **poolRef**: Which InferencePool handles this objective
+- **priority**: An integer routing priority. Higher is more important, negative
+  values are allowed, and unset is treated as `0`. This replaced the old
+  `Critical` and `BestEffort` enum, so there is no fixed translation: choose
+  numbers that express the ordering you want.
+- **poolRef**: Which InferencePool serves this objective. The pool must be in
+  the same namespace. `group` and `kind` default to
+  `inference.networking.k8s.io` and `InferencePool`.
+
+If you are looking for `modelName` or `targetModels`, those belonged to the
+`InferenceModel` kind that was replaced in v1.0.0, and they have no equivalent
+here. Model-name matching now happens at the pool and endpoint-picker layer.
 
 Apply the manifest:
 
@@ -162,7 +184,8 @@ The routing flow is:
    field from the JSON body.
 
 2. **InferenceObjective lookup** — The extension finds the InferenceObjective
-   named `coding-model` whose `modelName` matches `our-coding-model`.
+   bound to the target pool and reads its `priority` to decide how this request
+   ranks against others queued for the same pool.
 
 3. **Pool selection** — The objective's `poolRef` points to `llm-pool`, so the
    request is scoped to pods in that pool.
@@ -175,7 +198,7 @@ The routing flow is:
 
 5. **Request forwarded** to the best pod.
 
-In a production setup with mixed models and criticality levels, this prevents
+In a production setup with mixed models and priority levels, this prevents
 request starvation and reduces unnecessary model swaps.
 
 **What this looks like on a real cluster:**
@@ -212,8 +235,8 @@ You created the three resources that make up the Gateway API Inference Extension
 2. **InferencePool** — A group of inference server pods with an intelligent
    endpoint picker that considers model affinity and server load.
 
-3. **InferenceObjective** — A mapping from user-facing model names to backend
-   models, with criticality-based prioritization.
+3. **InferenceObjective** — An integer routing priority attached to a pool,
+   shipped by llm-d rather than by the Gateway API Inference Extension.
 
 Together, these resources enable routing decisions that are impossible with
 standard Kubernetes networking. Instead of blindly load-balancing across pods,

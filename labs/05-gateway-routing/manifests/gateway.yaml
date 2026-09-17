@@ -46,7 +46,8 @@ spec:
     - matches:
         # Match POST requests to the OpenAI-compatible chat completions
         # endpoint. The inference extension reads the model name from the
-        # request body to determine which InferenceObjective applies.
+        # request body to route it. Priority for the chosen pool comes from the
+        # InferenceObjective bound to it.
         - path:
             type: PathPrefix
             value: /v1
