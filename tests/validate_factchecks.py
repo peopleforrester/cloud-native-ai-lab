@@ -53,7 +53,7 @@ class TestJobSetVersion:
                     if not correction_context:
                         rel = md_file.relative_to(repo_root)
                         pytest.fail(
-                            f"{rel} contains incorrect JobSet version v0.10.1 (should be v0.11.1)"
+                            f"{rel} contains incorrect JobSet version v0.10.1 (should be v0.12.0)"
                         )
 
     def test_correct_jobset_version_exists(self, repo_root: Path) -> None:
@@ -298,11 +298,10 @@ class TestLlmdAttribution:
             lower = content.lower()
             if "llm-d" not in lower:
                 continue
-            # If the file mentions llm-d with multiple companies, check attribution
-            if "co-created" in lower or "co-built" in lower:
-                # Check if Red Hat is distinguished
-                if "red hat" not in lower:
-                    pytest.fail(
-                        f"{rel} describes llm-d as 'co-created/co-built' without "
-                        f"distinguishing Red Hat as the project launcher"
-                    )
+            # If the file mentions llm-d with multiple companies, Red Hat must be
+            # distinguished as the launcher rather than listed as a peer.
+            if ("co-created" in lower or "co-built" in lower) and "red hat" not in lower:
+                pytest.fail(
+                    f"{rel} describes llm-d as 'co-created/co-built' without "
+                    f"distinguishing Red Hat as the project launcher"
+                )
