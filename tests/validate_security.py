@@ -1,5 +1,5 @@
 # ABOUTME: Validates that at least one job manifest demonstrates pod-level securityContext.
-# ABOUTME: Acts as a teaching anchor — if the example regresses, the test fails loudly.
+# ABOUTME: Acts as a teaching anchor: if the example regresses, the test fails loudly.
 
 from pathlib import Path
 

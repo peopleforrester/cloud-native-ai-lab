@@ -14,7 +14,7 @@ spec:
   # - stdio: The MCP server runs as a subprocess (co-located with the agent).
   #   Good for local development and simple setups.
   # - sse: The MCP server runs as a separate service, communicating over
-  #   Server-Sent Events (HTTP streaming). Better for production — allows
+  #   Server-Sent Events (HTTP streaming). Better for production, allowing
   #   the MCP server to scale independently.
   transport: stdio
 

@@ -14,7 +14,7 @@
 
 ## Background
 
-An AI agent is an LLM that can take actions — not just generate text. Instead of
+An AI agent is an LLM that can take actions, not just generate text. Instead of
 responding with "you should run kubectl get pods," an agent actually runs the
 command, reads the output, and decides what to do next. Agents need tools: shell
 access, API calls, database queries, file operations. The problem is that every
@@ -23,13 +23,13 @@ fragmented ecosystem.
 
 The **Model Context Protocol (MCP)** solves this fragmentation. Created by
 Anthropic and now an open standard, MCP defines a universal interface between AI
-applications (clients) and tool providers (servers). Think of it as USB for AI —
+applications (clients) and tool providers (servers). Think of it as USB for AI:
 before USB, every peripheral had its own connector. MCP gives every tool the same
 plug. An MCP server exposes tools (functions the agent can call), resources (data
 the agent can read), and prompts (templates for common tasks). The client
 discovers available tools at runtime through a standard handshake.
 
-The ecosystem has grown rapidly — there are over 10,000 MCP servers available
+The ecosystem has grown rapidly. There are over 10,000 MCP servers available
 today, covering everything from GitHub and Slack to databases and cloud
 providers. For Kubernetes operators, this means you can give an agent access to
 your cluster, your monitoring stack, and your incident management system through
@@ -41,7 +41,7 @@ ToolServer (individual tool endpoints). For production deployments, two
 additional projects are worth knowing: **agentgateway** provides authentication,
 rate limiting, and observability for MCP traffic (like an API gateway for tool
 access), and **ToolHive** manages the lifecycle of MCP servers as containers with
-security sandboxing. This lab covers the introductory concepts — production setup
+security sandboxing. This lab covers the introductory concepts. Production setup
 is a separate concern.
 
 ## Exercise
@@ -129,19 +129,19 @@ kubectl get events -n agents --sort-by='.lastTimestamp'
 > not actually execute. The controller that reconciles Agent resources into
 > running pods with LLM connections requires additional infrastructure (an LLM
 > endpoint, the kagent operator deployment). This lab focuses on understanding
-> the resource model — the CRDs and their relationships.
+> the resource model: the CRDs and their relationships.
 
 ### Step 5: Understand production considerations
 
 In a production deployment, several additional components are needed:
 
-**agentgateway** — Sits between agents and MCP servers. It provides:
+**agentgateway**: Sits between agents and MCP servers. It provides:
 - Authentication and authorization for tool access
 - Rate limiting to prevent runaway agents from overwhelming tools
 - Observability (metrics, tracing, logging) for every tool call
 - Policy enforcement (which agents can use which tools)
 
-**ToolHive** — Manages MCP server lifecycles:
+**ToolHive**: Manages MCP server lifecycles:
 - Runs MCP servers as sandboxed containers
 - Handles secrets injection (API keys, tokens) securely
 - Provides health checking and automatic restart
@@ -190,16 +190,16 @@ kubectl get mcpserver kubernetes-tools -n agents -o yaml
 
 You defined two Kubernetes-native resources that represent an AI agent system:
 
-1. **Agent** — A CRD that declares an AI agent's identity: which LLM it uses,
+1. **Agent**: A CRD that declares an AI agent's identity: which LLM it uses,
    what instructions it follows, and which tool sources it can access. This is
-   the Kubernetes-native way to manage agent configurations — versioned, auditable,
+   the Kubernetes-native way to manage agent configurations: versioned, auditable,
    and deployable through standard GitOps workflows.
 
-2. **MCPServer** — A CRD that declares a tool source using the Model Context
+2. **MCPServer**: A CRD that declares a tool source using the Model Context
    Protocol. Instead of hardcoding tool integrations into agent code, MCP servers
    expose tools through a standardized discovery and invocation protocol.
 
-The key insight is that agents and their tools become Kubernetes resources —
+The key insight is that agents and their tools become Kubernetes resources,
 managed with kubectl, deployed with Helm or Kustomize, governed by RBAC, and
 observable through standard Kubernetes tooling. This is the same operational
 model you use for every other workload.
@@ -211,7 +211,7 @@ kubectl delete -f manifests/mcp-server.yaml
 kubectl delete -f manifests/agent.yaml
 kubectl delete namespace agents
 
-# Remove CRDs (optional — only if you want to fully clean up)
+# Remove CRDs (optional: only if you want to fully clean up)
 kubectl delete -f https://raw.githubusercontent.com/kagent-dev/kagent/main/helm/crds/agent-crd.yaml
 ```
 

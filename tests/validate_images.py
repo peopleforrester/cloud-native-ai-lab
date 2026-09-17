@@ -18,7 +18,7 @@ def _iter_image_refs(yaml_files: list[Path]) -> list[tuple[Path, str]]:
 
 
 def test_no_latest_image_tags(all_yaml_files: list[Path], repo_root: Path) -> None:
-    """No manifest may use `:latest` or omit the tag — pin every image."""
+    """No manifest may use `:latest` or omit the tag. Pin every image."""
     bad: list[str] = []
     for yaml_file, image in _iter_image_refs(all_yaml_files):
         if image.endswith(":latest"):

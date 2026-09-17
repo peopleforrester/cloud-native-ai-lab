@@ -21,7 +21,7 @@ Thank you for your interest in contributing! This project is a community learnin
 ### Adding or updating content
 
 - **Project one-pagers** (`docs/projects/`): Follow the template in the existing files. Every fact must be verifiable against official documentation.
-- **Lab exercises** (`labs/`): Follow the lab README template. Every step must actually work — do not submit untested instructions.
+- **Lab exercises** (`labs/`): Follow the lab README template. Every step must actually work. Do not submit untested instructions.
 - **Manifests**: All YAML must be valid. Test on a kind cluster before submitting.
 
 ### What we value
@@ -46,7 +46,7 @@ Thank you for your interest in contributing! This project is a community learnin
 
 ## Code of conduct
 
-Be respectful, constructive, and welcoming. This is a learning resource — questions are encouraged.
+Be respectful, constructive, and welcoming. This is a learning resource. Questions are encouraged.
 
 ## License
 

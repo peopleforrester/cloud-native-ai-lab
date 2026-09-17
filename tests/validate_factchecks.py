@@ -277,7 +277,7 @@ class TestKServeVersion:
 
     def test_kserve_lab_recommends_v020_server_side(self, repo_root: Path) -> None:
         """Lab 04 README must offer a working `kubectl apply --server-side` command
-        that installs KServe v0.20.0 — not just mention it in prose."""
+        that installs KServe v0.20.0, not just mention it in prose."""
         lab_readme = repo_root / "labs" / "04-kserve-inference" / "README.md"
         content = lab_readme.read_text()
         # Look for an actual command line installing v0.20.0 with --server-side.
@@ -311,7 +311,7 @@ class TestKnativeVersion:
     def test_kserve_lab_uses_current_knative(self, repo_root: Path) -> None:
         """Every Knative reference in Lab 04 must be >= 1.21.
 
-        Validate ALL matches, not just the first — a single stale reference
+        Validate ALL matches, not just the first. A single stale reference
         anywhere in the file must fail the gate, regardless of ordering.
         """
         lab_readme = repo_root / "labs" / "04-kserve-inference" / "README.md"

@@ -12,7 +12,7 @@ ok()   { printf "\033[1;32m[OK]\033[0m    %s\n" "$*"; }
 info "Deleting kind cluster '$CLUSTER_NAME'..."
 
 if ! kind get clusters 2>/dev/null | grep -q "^${CLUSTER_NAME}$"; then
-    info "Cluster '$CLUSTER_NAME' does not exist — nothing to delete."
+    info "Cluster '$CLUSTER_NAME' does not exist, nothing to delete."
     exit 0
 fi
 

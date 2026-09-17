@@ -17,10 +17,10 @@ spec:
   template:
     spec:
       # Pod-level securityContext applies to every container in the pod.
-      # This is a teaching example — the pattern is the same for any workload.
+      # This is a teaching example. The pattern is the same for any workload.
       securityContext:
         runAsNonRoot: true
-        runAsUser: 65534          # nobody — present in nearly every base image
+        runAsUser: 65534          # nobody, present in nearly every base image
         runAsGroup: 65534
         seccompProfile:
           type: RuntimeDefault

@@ -10,7 +10,7 @@
 
 ## Prerequisites
 
-- Lab 00 completed — a running kind cluster named `ai-workshop`
+- Lab 00 completed: a running kind cluster named `ai-workshop`
 - `kubectl` configured to talk to the `ai-workshop` cluster
 
 ## Background
@@ -18,10 +18,10 @@
 Kubernetes has supported GPUs and other hardware accelerators through **device
 plugins** since version 1.8. Device plugins work, but they have a fundamental
 limitation: they treat devices as opaque integers. When a pod requests
-`nvidia.com/gpu: 1`, the kubelet hands it one GPU — any GPU. The pod cannot
+`nvidia.com/gpu: 1`, the kubelet hands it one GPU, any GPU. The pod cannot
 express preferences like "give me a GPU with at least 40 GB of memory" or
 "give me two GPUs connected by NVLink." It is like walking into a restaurant
-and ordering "1 food" — you will get something, but you have no say in what.
+and ordering "1 food": you will get something, but you have no say in what.
 
 **Dynamic Resource Allocation (DRA)** replaces this model with a declarative,
 expressive system. DRA lets pods describe exactly what they need through
@@ -33,7 +33,7 @@ against the available inventory.
 
 DRA reached beta status in Kubernetes 1.32 with the "structured parameters"
 model. In this model, device attributes are published as structured data that
-the scheduler can evaluate directly — no external controller needed for basic
+the scheduler can evaluate directly, no external controller needed for basic
 matching. This is a significant improvement over the earlier "classic DRA"
 model where an external controller had to handle every allocation request.
 
@@ -104,7 +104,7 @@ device is available to the container before starting it. In a real GPU
 scenario, this would mean the GPU is allocated, its device node is mounted
 into the container, and the appropriate driver libraries are available.
 
-### Part B: Optional — hands-on with the DRA example driver
+### Part B: Optional: hands-on with the DRA example driver
 
 > **Warning:** The DRA example driver demo creates its own dedicated kind
 > cluster (separate from the `ai-workshop` cluster from Lab 00). It requires
@@ -154,7 +154,7 @@ kubectl get resourceslice -o yaml
 
 `create-cluster.sh` switches your kubeconfig to the demo cluster's context,
 but if you opened a new terminal or ran other `kubectl` commands since, confirm
-you are pointed at the demo cluster — not the `ai-workshop` cluster from Lab 00 —
+you are pointed at the demo cluster, not the `ai-workshop` cluster from Lab 00,
 before applying anything:
 
 ```bash
@@ -205,13 +205,13 @@ kubectl get pod gpu-consumer
 You explored Kubernetes Dynamic Resource Allocation, the system replacing
 legacy device plugins for managing hardware accelerators:
 
-- **DeviceClass** — defines a category of devices (e.g., "simulated GPU")
+- **DeviceClass**: defines a category of devices (e.g., "simulated GPU")
   with attribute-based selectors
-- **ResourceClaim** — a pod's request for a specific device, supporting
+- **ResourceClaim**: a pod's request for a specific device, supporting
   attribute constraints like memory size or architecture
-- **ResourceClaimTemplate** — generates per-pod claims for multi-replica
+- **ResourceClaimTemplate**: generates per-pod claims for multi-replica
   workloads like Deployments and Jobs
-- **Pod integration** — pods reference claims in their spec, and the kubelet
+- **Pod integration**: pods reference claims in their spec, and the kubelet
   ensures devices are allocated before container startup
 
 DRA's structured parameters model lets the Kubernetes scheduler evaluate

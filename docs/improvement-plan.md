@@ -23,7 +23,7 @@ versions and image references in the changes below:
 - **Knative Serving**: latest stable is `v1.21.2` (released 2026-03-24).
   Source: github.com/knative/serving/releases.
 - **DRA example driver**: lives at `kubernetes-sigs/dra-example-driver`, latest
-  release `v0.2.1` (2026-01-09). Helm-only install — no `kubectl apply -f`
+  release `v0.2.1` (2026-01-09). Helm-only install, no `kubectl apply -f`
   path exists upstream.
 - **kagent kubernetes MCP image**: `ghcr.io/kagent-dev/kubernetes-mcp-server`
   does not exist. The kubernetes MCP tools ship inside the consolidated
@@ -36,7 +36,7 @@ The original `labs/06-kagent-mcp/manifests/mcp-server.yaml` referenced an image
 path that did not exist (`ghcr.io/kagent-dev/kubernetes-mcp-server:latest`).
 **Resolved with option 1:** the manifest now points at the officially-shipped
 `ghcr.io/kagent-dev/kagent/tools` image (pinned to a real tag), with the
-manifest `tools:` list filtering it down to the Kubernetes subset — the most
+manifest `tools:` list filtering it down to the Kubernetes subset, the most
 idiomatic choice for the kagent ecosystem. The unaffiliated
 `ghcr.io/containers/kubernetes-mcp-server` and a purely-illustrative manifest
 were the considered alternatives. The pinned tag is kept current as part of the
@@ -44,7 +44,7 @@ repo's version-drift maintenance rather than tracked here.
 
 ## Phases
 
-### Phase 1 — Lint / format / type-check baseline (HP4, HP5)
+### Phase 1: Lint / format / type-check baseline (HP4, HP5)
 
 **Goal:** `uv run ruff check .`, `uv run ruff format --check .`, and `uv run mypy
 tests/` all pass on a clean checkout. CLAUDE.md commands honor their promise.
@@ -64,7 +64,7 @@ three commands as a subprocess against the repo and asserts exit code 0.
 **Definition of done:** `validate_tooling.py` passes; existing 55 tests still
 pass; `uv run ruff check .` exits 0.
 
-### Phase 2 — CI workflow hardening (M6, M7) + add lint gate
+### Phase 2: CI workflow hardening (M6, M7) + add lint gate
 
 **Goal:** `.github/workflows/test.yml` has explicit `permissions:`,
 `concurrency:`, `timeout-minutes:`; CI runs `ruff check` and
@@ -89,7 +89,7 @@ pass; `uv run ruff check .` exits 0.
 **Definition of done:** new validator passes; workflow YAML parses; pytest still
 55+ green.
 
-### Phase 3 — `mcp-server.yaml` image (HP1) — BLOCKED on open question
+### Phase 3: `mcp-server.yaml` image (HP1): BLOCKED on open question
 
 **Goal:** the manifest references a real, tagged, pull-able image and matches
 the project's "no `:latest` for tagged images" rule.
@@ -108,7 +108,7 @@ and skip the no-`:latest` test for this file with a documented exclusion.
 parses; image reference matches a verified upstream artifact (or is documented
 as illustrative).
 
-### Phase 4 — Knative version drift (HP2)
+### Phase 4: Knative version drift (HP2)
 
 **Goal:** Lab 04's Knative install pins reflect a current Knative Serving
 release; the doc one-pager either pins a version or uniformly defers.
@@ -127,7 +127,7 @@ release; the doc one-pager either pins a version or uniformly defers.
 **Definition of done:** new fact-check passes; existing fact-check tests still
 pass; lab text reads coherently.
 
-### Phase 5 — KServe v0.17.0 server-side path (HP3)
+### Phase 5: KServe v0.17.0 server-side path (HP3)
 
 **Goal:** Lab 04 offers v0.17.0 as the recommended path with `--server-side`,
 keeping v0.14.1 as a documented fallback for `kubectl apply` simplicity.
@@ -143,7 +143,7 @@ breaks loudly).
 
 **Definition of done:** new test passes; lab still reads clearly.
 
-### Phase 6 — Lab 02 DRA example driver path correction (M14)
+### Phase 6: Lab 02 DRA example driver path correction (M14)
 
 **Goal:** Part B references the canonical upstream
 (`kubernetes-sigs/dra-example-driver`) with a working install path.
@@ -160,7 +160,7 @@ accordingly.
 **Definition of done:** new test passes; reader can follow Part B against real
 upstream artifacts.
 
-### Phase 7 — Imperative → declarative `kubectl create namespace` (M9)
+### Phase 7: Imperative → declarative `kubectl create namespace` (M9)
 
 **Goal:** lab READMEs and manifests use `kubectl apply -f` for namespaces,
 matching the rest of each lab's declarative style.
@@ -175,7 +175,7 @@ cloud labs where rationale differs).
 
 **Definition of done:** test passes; manifests work end-to-end.
 
-### Phase 8 — `securityContext` teaching pattern (M8)
+### Phase 8: `securityContext` teaching pattern (M8)
 
 **Goal:** at least one job manifest demonstrates pod-level
 `securityContext` (`runAsNonRoot`, `seccompProfile`, dropped capabilities,
@@ -183,12 +183,12 @@ cloud labs where rationale differs).
 
 **Test (write first):** a check that `labs/01-kueue-basics/manifests/sample-job.yaml`
 contains a `securityContext:` block with `runAsNonRoot: true`. (Bound to one
-file only — we are not retrofitting every manifest in a content repo, just
+file only. We are not retrofitting every manifest in a content repo, just
 demonstrating the pattern.)
 
 **Changes:**
 - Pick `labs/01-kueue-basics/manifests/sample-job.yaml` (busybox runs as root
-  by default — natural teaching example).
+  by default, a natural teaching example).
 - Add `securityContext` at pod and container level. Use `busybox:1.36-glibc`
   if needed for nonroot compatibility, or comment the pod-level user.
 - Update Lab 01 README "What just happened?" with a short paragraph on
@@ -197,11 +197,11 @@ demonstrating the pattern.)
 **Definition of done:** test passes; lab manifest still runs (verified against
 local kind cluster if available; otherwise documented as not yet runtime-verified).
 
-### Phase 9 — PROJECT_STATE.md update
+### Phase 9: PROJECT_STATE.md update
 
 **Goal:** PROJECT_STATE.md reflects the work done above.
 
-**Test:** none — content state file.
+**Test:** none, a content state file.
 
 **Changes:** rewrite PROJECT_STATE.md with the phases completed, branch
 status, and next steps.

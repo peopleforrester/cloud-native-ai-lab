@@ -1,5 +1,5 @@
 # ABOUTME: eksctl ClusterConfig for an EKS cluster with a GPU-enabled managed node group.
-# ABOUTME: Uses g5.xlarge instances (1x A10G GPU) — costs approximately $1.01/hour per node.
+# ABOUTME: Uses g5.xlarge instances (1x A10G GPU): costs approximately $1.01/hour per node.
 
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig

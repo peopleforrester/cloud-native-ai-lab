@@ -15,7 +15,7 @@ spec:
         #   device.attributes["gpu.nvidia.com/family"] == "ampere"
         expression: 'device.attributes["simulated.example.com"].type == "gpu"'
   # suitableNodes constrains which nodes can satisfy claims for this class.
-  # Omitted here — any node with the driver installed can provide devices.
+  # Omitted here. Any node with the driver installed can provide devices.
   # In production, you might add a node selector like:
   #   suitableNodes:
   #     nodeSelectorTerms:

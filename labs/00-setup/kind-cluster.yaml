@@ -21,9 +21,9 @@ nodes:
   - role: worker
     image: kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5
     labels:
-      # Simulated GPU label — later labs use this for scheduling decisions.
+      # Simulated GPU label. Later labs use this for scheduling decisions.
       node.kubernetes.io/gpu-type: simulated
-      # Topology zone — used by labs that demonstrate zone-aware placement.
+      # Topology zone, used by labs that demonstrate zone-aware placement.
       topology.kubernetes.io/zone: zone-a
   - role: worker
     image: kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5

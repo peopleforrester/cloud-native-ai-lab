@@ -7,7 +7,7 @@ metadata:
   name: inference-demo
 ---
 # The Gateway is the entry point for inference traffic.
-# It uses the standard Gateway API spec — the inference extension hooks
+# It uses the standard Gateway API spec: the inference extension hooks
 # into the gateway's processing pipeline to add model-aware routing.
 #
 # In production, you would use a GatewayClass backed by Envoy Gateway,

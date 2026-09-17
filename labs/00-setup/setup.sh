@@ -42,7 +42,7 @@ info "Step 2/3: Creating kind cluster '$CLUSTER_NAME'..."
 
 # If the cluster already exists, skip creation so the script is idempotent.
 if kind get clusters 2>/dev/null | grep -q "^${CLUSTER_NAME}$"; then
-    info "Cluster '$CLUSTER_NAME' already exists — skipping creation."
+    info "Cluster '$CLUSTER_NAME' already exists, skipping creation."
 else
     info "Pulling node images and starting containers (this may take 1-3 minutes)..."
     kind create cluster --config "${SCRIPT_DIR}/kind-cluster.yaml" --wait 120s

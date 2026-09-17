@@ -55,7 +55,7 @@ def test_workflow_runs_lint_gates(repo_root: Path) -> None:
 
 
 def test_checkout_disables_credential_persistence(repo_root: Path) -> None:
-    """actions/checkout must set persist-credentials: false — this CI never pushes,
+    """actions/checkout must set persist-credentials: false because this CI never pushes,
     so leaving the GITHUB_TOKEN in .git/config is needless credential exposure."""
     workflow = _load_workflow(repo_root)
     steps = workflow.get("jobs", {}).get("test", {}).get("steps", [])

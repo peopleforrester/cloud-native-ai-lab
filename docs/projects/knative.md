@@ -1,7 +1,7 @@
 # Knative
 
 ## What is it?
-Knative is a Kubernetes platform that adds serverless capabilities to your cluster. Its Serving component lets you deploy containers that automatically scale based on request traffic — including scaling all the way down to zero Pods when idle and spinning back up when a request arrives. In the context of AI workloads, Knative is the engine underneath KServe that makes scale-to-zero inference possible.
+Knative is a Kubernetes platform that adds serverless capabilities to your cluster. Its Serving component lets you deploy containers that automatically scale based on request traffic, including scaling all the way down to zero Pods when idle and spinning back up when a request arrives. In the context of AI workloads, Knative is the engine underneath KServe that makes scale-to-zero inference possible.
 
 ## What problem does it solve?
 GPUs are expensive. An inference endpoint that sits idle overnight still burns GPU hours at full cost. Without Knative, you either accept that waste or build custom automation to scale down idle Deployments and intercept incoming requests to trigger scale-up. Knative solves this natively: it watches request queues, scales Pods to match demand, and drops to zero when traffic stops. When a new request arrives, its activator component intercepts it, triggers a scale-up, buffers the request, and forwards it once the Pod is ready. For inference workloads, this means you only pay for GPUs when models are actively serving predictions.

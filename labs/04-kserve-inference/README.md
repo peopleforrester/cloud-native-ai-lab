@@ -18,14 +18,14 @@ If you already know Kubernetes Ingress or Gateway API, KServe will feel familiar
 An Ingress controller accepts HTTP traffic and routes it to backend Services.
 KServe does the same thing, but the "backends" are ML models instead of
 microservices. You define an **InferenceService** resource, KServe provisions the
-serving container, wires up the networking, and manages the lifecycle — including
+serving container, wires up the networking, and manages the lifecycle, including
 autoscaling.
 
 KServe runs in **serverless mode** on top of Knative Serving. Knative gives you
 request-driven autoscaling (the Knative Pod Autoscaler, or KPA) and
 scale-to-zero. When no requests arrive for a configurable window (default: 60
 seconds), Knative scales the model pod down to zero replicas. The next request
-triggers a cold start — Knative spins up a pod, loads the model, and serves the
+triggers a cold start. Knative spins up a pod, loads the model, and serves the
 prediction. This is the same scale-to-zero pattern that powers serverless
 platforms like AWS Lambda, but it runs on your own cluster.
 
@@ -33,7 +33,7 @@ Under the hood, KServe supports multiple ML frameworks: scikit-learn, XGBoost,
 TensorFlow, PyTorch, Triton, and custom containers. Each framework has a
 pre-built serving image that knows how to load models from a storage URI (an S3
 bucket, GCS path, PVC, or HTTP URL). In this lab we use scikit-learn with KServe's
-official example iris classifier — a tiny model that runs on CPU. No GPU needed.
+official example iris classifier, a tiny model that runs on CPU. No GPU needed.
 
 KServe also defines an **LLMInferenceService** CRD specifically for large
 language models, which handles concerns like tensor parallelism, continuous
@@ -54,7 +54,7 @@ kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1
 kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.23.0/serving-core.yaml
 ```
 
-Install the Knative networking layer (Kourier — lightweight, good for kind):
+Install the Knative networking layer (Kourier, lightweight and good for kind):
 
 ```bash
 kubectl apply -f https://github.com/knative-extensions/net-kourier/releases/download/knative-v1.23.0/kourier.yaml
@@ -189,7 +189,7 @@ will spin up automatically.
 
 > **Note on kind:** Scale-to-zero may take longer than 60 seconds on kind due to
 > resource constraints. Knative's default scale-down window is 60 seconds, but
-> the actual termination depends on the KPA polling interval. Be patient — it
+> the actual termination depends on the KPA polling interval. Be patient. It
 > will happen.
 
 To test scale-up, restart the port-forward and send another request:
@@ -206,7 +206,7 @@ curl -H "Host: ${SERVICE_HOSTNAME}" \
 kill $PF_PID
 ```
 
-Watch the pods again — you should see a new pod created to serve the request.
+Watch the pods again. You should see a new pod created to serve the request.
 
 ## Verify it worked
 
@@ -230,20 +230,20 @@ kubectl get revisions -n inference
 You deployed a machine learning model to Kubernetes without writing any serving
 code. Here is what KServe did for you:
 
-1. **Created a Knative Service** — KServe translated the InferenceService spec
+1. **Created a Knative Service**: KServe translated the InferenceService spec
    into a Knative Service, which manages revisions and traffic routing.
 
-2. **Pulled the model server image** — KServe selected the sklearn server image
+2. **Pulled the model server image**: KServe selected the sklearn server image
    based on the `sklearn` predictor type in the spec.
 
-3. **Loaded the model from storage** — The sklearn server container downloaded
+3. **Loaded the model from storage**: The sklearn server container downloaded
    the serialized model from the `storageUri` (a GCS bucket in this case,
    accessible without credentials because it is a public KServe example).
 
-4. **Set up autoscaling** — Knative's KPA monitors request concurrency and
+4. **Set up autoscaling**: Knative's KPA monitors request concurrency and
    scales the deployment between 0 and N replicas automatically.
 
-5. **Configured networking** — Kourier (the Knative ingress) routes traffic to
+5. **Configured networking**: Kourier (the Knative ingress) routes traffic to
    the correct revision based on the Host header.
 
 This is the same pattern used in production, but at production scale you would

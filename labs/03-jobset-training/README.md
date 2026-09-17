@@ -9,15 +9,15 @@
 
 ## Prerequisites
 
-- Lab 00 completed — a running kind cluster named `ai-workshop`
-- Lab 01 completed — Kueue installed and configured (for Step 5)
+- Lab 00 completed: a running kind cluster named `ai-workshop`
+- Lab 01 completed: Kueue installed and configured (for Step 5)
 - `kubectl` configured to talk to the `ai-workshop` cluster
 
 ## Background
 
 Distributed machine learning training runs across multiple pods simultaneously.
 A typical training job has a coordinator (sometimes called the driver or rank-0
-worker) and several worker replicas. All pods must start together — if the
+worker) and several worker replicas. All pods must start together. If the
 coordinator starts but two workers are stuck in `Pending`, the training process
 hangs because it cannot begin until every participant has joined.
 
@@ -28,7 +28,7 @@ together and treats the group as an atomic unit. If you have ever seen a
 distributed training job hang because one pod could not be scheduled, JobSet
 is the answer.
 
-A JobSet contains one or more **ReplicatedJobs** — groups of identical pods
+A JobSet contains one or more **ReplicatedJobs**: groups of identical pods
 that serve a specific role. For example, you might have one ReplicatedJob for
 the coordinator (1 replica) and another for workers (4 replicas). JobSet
 ensures all replicas across all ReplicatedJobs start before any of them begin
@@ -36,7 +36,7 @@ doing real work. Each pod gets a stable hostname and can discover its peers
 through a headless service that JobSet creates automatically.
 
 Failure handling is where JobSet earns its keep. When a pod in a distributed
-training job crashes, you usually want to restart the entire group — not just
+training job crashes, you usually want to restart the entire group, not just
 the failed pod. A partially-running training job wastes resources because the
 surviving pods are idle, waiting for a peer that will never rejoin. JobSet
 lets you configure failure policies: restart the entire group, retry up to N
@@ -47,7 +47,7 @@ JobSet also integrates with Kueue for admission control. By setting
 `suspend: true` and adding Kueue queue labels, you can ensure that training
 jobs only start when the cluster has enough capacity for all pods at once. This
 prevents the common problem of partial scheduling, where half the pods start
-and consume resources while the other half wait — wasting the resources held by
+and consume resources while the other half wait, wasting the resources held by
 the running pods.
 
 ## Exercise
@@ -120,7 +120,7 @@ kubectl get pods -l jobset.sigs.k8s.io/jobset-name=training-sim -w
 ```
 
 The JobSet controller detects the failure and restarts the entire group. This
-is the correct behavior for distributed training — a partial group is useless,
+is the correct behavior for distributed training. A partial group is useless,
 so JobSet tears down the survivors and recreates everything together.
 
 Check the JobSet events:
@@ -152,7 +152,7 @@ kubectl -n team-a-ns get workloads -w
 kubectl -n team-a-ns get pods -w
 ```
 
-This integration prevents partial scheduling — Kueue will not admit the JobSet
+This integration prevents partial scheduling. Kueue will not admit the JobSet
 unless the cluster can run all pods simultaneously.
 
 ## Verify it worked
@@ -183,20 +183,20 @@ You should see:
 You deployed and tested JobSet, the Kubernetes controller for coordinated
 multi-pod workloads:
 
-- **Coordinated startup** — all pods in the JobSet start together as an atomic
+- **Coordinated startup**: all pods in the JobSet start together as an atomic
   unit, preventing partial scheduling that wastes resources
-- **Automatic peer discovery** — JobSet creates a headless service so pods can
+- **Automatic peer discovery**: JobSet creates a headless service so pods can
   find each other by hostname, essential for distributed training frameworks
-- **Failure handling** — when one pod dies, JobSet restarts the entire group
+- **Failure handling**: when one pod dies, JobSet restarts the entire group
   rather than leaving surviving pods idle
-- **Kueue integration** — by submitting JobSets in suspended state with queue
+- **Kueue integration**: by submitting JobSets in suspended state with queue
   labels, Kueue ensures the cluster has full capacity before admitting the
   training job
 
 In production, the busybox containers would be replaced with real training
 frameworks like PyTorch DistributedDataParallel or TensorFlow MultiWorkerMirrored.
-The JobSet mechanics — coordinated startup, failure restart, and Kueue
-admission — work identically regardless of what the containers run.
+The JobSet mechanics (coordinated startup, failure restart, and Kueue
+admission) work identically regardless of what the containers run.
 
 ## Clean up
 

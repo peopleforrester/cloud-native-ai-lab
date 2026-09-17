@@ -10,7 +10,7 @@
 
 ## Prerequisites
 
-- Lab 00 completed — a running kind cluster named `ai-workshop`
+- Lab 00 completed: a running kind cluster named `ai-workshop`
 - `helm` installed and available on your PATH
 - `kubectl` configured to talk to the `ai-workshop` cluster
 
@@ -21,7 +21,7 @@ it has no concept of "waiting in line." If you submit 500 GPU training jobs and
 your cluster only has capacity for 10, the scheduler will start binding pods
 immediately. The ones that fit will run; the rest will sit in `Pending` state
 with no ordering, no fairness, and no visibility into when they might run. In a
-shared cluster, this creates chaos — one team can monopolize all the GPUs while
+shared cluster, this creates chaos. One team can monopolize all the GPUs while
 others wait indefinitely.
 
 **Kueue** is a Kubernetes-native job queueing system that solves this problem.
@@ -32,7 +32,7 @@ capacity available. Jobs that cannot run yet wait in a queue with well-defined
 ordering rather than flooding the scheduler with un-schedulable pods.
 
 Fair sharing is one of Kueue's core features. You define quotas per team or
-project — say, team-a gets 4 CPUs and team-b gets 2 CPUs. Kueue enforces
+project. Say team-a gets 4 CPUs and team-b gets 2 CPUs. Kueue enforces
 these limits at admission time, not at scheduling time. This means team-a
 cannot accidentally (or intentionally) consume team-b's allocation. Each team
 gets a guaranteed share of the cluster, and Kueue tracks usage in real time
@@ -40,13 +40,13 @@ to make admission decisions.
 
 Preemption adds another layer. When a high-priority job arrives and the queue
 is full, Kueue can evict lower-priority jobs to make room. This is critical
-in production AI/ML workflows — a time-sensitive inference model retrain
+in production AI/ML workflows: a time-sensitive inference model retrain
 should not wait behind a batch of exploratory notebooks. Kueue handles the
 eviction and re-queuing automatically, so the lower-priority jobs resume once
 capacity frees up.
 
 **No GPU required.** All exercises in this lab use CPU and memory quotas to
-demonstrate Kueue's behavior. The concepts apply identically to GPU resources —
+demonstrate Kueue's behavior. The concepts apply identically to GPU resources,
 when you move to a cluster with real GPUs, you simply add GPU resource types to
 your ClusterQueue definitions.
 
@@ -111,7 +111,7 @@ You should see both queues with their configured resource limits.
 ### Step 4: Create namespaces and LocalQueues
 
 LocalQueues live in a namespace and point to a ClusterQueue. Users submit jobs
-to LocalQueues — they never interact with ClusterQueues directly:
+to LocalQueues. They never interact with ClusterQueues directly:
 
 ```bash
 kubectl apply -f manifests/namespaces.yaml
@@ -133,7 +133,7 @@ Watch the job get admitted:
 kubectl -n team-a-ns get jobs -w
 ```
 
-Check the ClusterQueue usage — Kueue tracks admitted workloads:
+Check the ClusterQueue usage. Kueue tracks admitted workloads:
 
 ```bash
 kubectl get clusterqueue team-a-cq -o yaml | grep -A 10 "flavorsUsage"
@@ -194,13 +194,13 @@ You should see:
 
 You deployed a complete Kueue job queueing system with:
 
-- **ResourceFlavor** — a named type of compute resource (default CPU)
-- **ClusterQueues** — cluster-wide resource budgets with different quotas for
+- **ResourceFlavor**: a named type of compute resource (default CPU)
+- **ClusterQueues**: cluster-wide resource budgets with different quotas for
   two teams (team-a: 4 CPU / 8Gi, team-b: 2 CPU / 4Gi)
-- **LocalQueues** — namespace-scoped entry points where users submit jobs
-- **Fair sharing** — each team gets its guaranteed allocation without
+- **LocalQueues**: namespace-scoped entry points where users submit jobs
+- **Fair sharing**: each team gets its guaranteed allocation without
   interfering with the other
-- **Preemption** — high-priority jobs can evict lower-priority ones when
+- **Preemption**: high-priority jobs can evict lower-priority ones when
   resources are scarce
 
 In a real cluster with GPUs, you would add `nvidia.com/gpu` to the
@@ -213,17 +213,17 @@ Open `manifests/sample-job.yaml` and look at the `securityContext` blocks.
 They are not strictly required for Kueue to admit the job, but they are the
 production-grade pattern every batch workload should adopt:
 
-- `runAsNonRoot: true` and `runAsUser: 65534` — refuse to run the container
+- `runAsNonRoot: true` and `runAsUser: 65534`: refuse to run the container
   as root. Most base images run as root by default; this block opts out.
-- `seccompProfile.type: RuntimeDefault` — apply the container runtime's
+- `seccompProfile.type: RuntimeDefault`: apply the container runtime's
   default syscall filter, which blocks rarely-used kernel surfaces.
-- `readOnlyRootFilesystem: true` — make the root filesystem immutable.
+- `readOnlyRootFilesystem: true`: make the root filesystem immutable.
   Anything that needs to write must mount an explicit emptyDir or PVC.
-- `capabilities.drop: ["ALL"]` and `allowPrivilegeEscalation: false` — drop
+- `capabilities.drop: ["ALL"]` and `allowPrivilegeEscalation: false`: drop
   every Linux capability and forbid `setuid`/`setgid` privilege gain.
 
 This is the baseline for the "restricted" Pod Security Standard. When you
-move to GPU workloads in later labs, copy the pattern — the only difference
+move to GPU workloads in later labs, copy the pattern. The only difference
 is which capabilities or paths the workload actually needs.
 
 ## Clean up

@@ -30,14 +30,14 @@ can demonstrate scheduling, resource management, and topology-aware placement
 without requiring actual GPU hardware.
 
 We also label the two workers with different topology zones (`zone-a` and
-`zone-b`). In production clusters, zones represent failure domains — separate
+`zone-b`). In production clusters, zones represent failure domains: separate
 racks, availability zones, or data centers. Several labs use zone-aware
 scheduling to show how Kubernetes distributes AI workloads for resilience.
 
 **An honest note about limitations:** These labs simulate GPU concepts using
 CPU-based workloads. You will not see real GPU memory allocation, CUDA kernels,
-or hardware acceleration. The goal is to learn the Kubernetes primitives —
-scheduling, queuing, resource claims, inference serving, and routing — that
+or hardware acceleration. The goal is to learn the Kubernetes primitives
+(scheduling, queuing, resource claims, inference serving, and routing) that
 apply identically whether the underlying hardware is simulated or real. When you
 move to a cluster with actual GPUs, the only change is swapping simulated labels
 and resources for real device plugins.
@@ -53,7 +53,7 @@ and resources for real device plugins.
 If you already have these tools installed, skip to Step 2. Otherwise, install
 each one:
 
-**kind** — creates local Kubernetes clusters using Docker containers:
+**kind**: creates local Kubernetes clusters using Docker containers:
 
 ```bash
 # Linux
@@ -72,7 +72,7 @@ chmod +x ./kind
 sudo mv ./kind /usr/local/bin/kind
 ```
 
-**kubectl** — the Kubernetes command-line tool:
+**kubectl**: the Kubernetes command-line tool:
 
 ```bash
 # Linux
@@ -84,7 +84,7 @@ sudo mv kubectl /usr/local/bin/kubectl
 brew install kubectl
 ```
 
-**Helm** — the Kubernetes package manager (used to install cert-manager and
+**Helm**: the Kubernetes package manager (used to install cert-manager and
 other components):
 
 ```bash
@@ -163,13 +163,13 @@ The two worker nodes should have labels including:
 
 You now have a local Kubernetes cluster with:
 
-- **3 nodes** — one control plane for cluster management, two workers for
+- **3 nodes**: one control plane for cluster management, two workers for
   running workloads
-- **Simulated GPU topology** — worker nodes labeled as if they have GPUs, in
+- **Simulated GPU topology**: worker nodes labeled as if they have GPUs, in
   two separate availability zones
-- **cert-manager** — TLS certificate automation ready for KServe and other
+- **cert-manager**: TLS certificate automation ready for KServe and other
   components
-- **NodePort access** — ports 30000–30002 mapped from your host into the
+- **NodePort access**: ports 30000–30002 mapped from your host into the
   cluster for accessing services
 
 This cluster is the foundation for every lab that follows. Each subsequent lab

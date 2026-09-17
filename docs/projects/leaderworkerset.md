@@ -10,14 +10,14 @@ Deploying a model that spans multiple nodes is awkward with standard Kubernetes 
 LeaderWorkerSet handles the Pod topology for multi-host inference workloads, complementing KServe (which manages the serving API, autoscaling, and traffic routing) and DRA (which allocates the GPUs each Pod needs).
 
 ## Current status
-- **CNCF status:** Not a CNCF project — maintained under kubernetes-sigs
+- **CNCF status:** Not a CNCF project, maintained under kubernetes-sigs
 - **Latest version:** v0.10.0 (stable API, v1)
 - **Key CRDs:** LeaderWorkerSet
 
 ## Get started
 - Official docs: [https://github.com/kubernetes-sigs/lws/tree/main/docs](https://github.com/kubernetes-sigs/lws/tree/main/docs)
 - GitHub: [https://github.com/kubernetes-sigs/lws](https://github.com/kubernetes-sigs/lws)
-- Related lab: No dedicated lab — referenced in context of [labs/03-jobset-training](../../labs/03-jobset-training) and [labs/04-kserve-inference](../../labs/04-kserve-inference)
+- Related lab: none dedicated. Referenced in the context of [labs/03-jobset-training](../../labs/03-jobset-training) and [labs/04-kserve-inference](../../labs/04-kserve-inference)
 
 ## Last verified
 July 2026. All facts checked against official sources.
