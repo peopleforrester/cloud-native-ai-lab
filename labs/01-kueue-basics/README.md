@@ -58,7 +58,7 @@ Install Kueue into the cluster using the official OCI Helm chart:
 
 ```bash
 helm install kueue oci://registry.k8s.io/kueue/charts/kueue \
-  --version 0.18.3 \
+  --version 0.19.4 \
   -n kueue-system \
   --create-namespace \
   --wait --timeout 5m
@@ -70,6 +70,15 @@ Wait for the Kueue controller to become ready:
 kubectl -n kueue-system wait --for=condition=Available \
   deployment/kueue-controller-manager --timeout=120s
 ```
+
+> **Behaviour change in Kueue 0.19.** `WaitForPodsReady` is enabled by default
+> from this release on, with a 30 minute timeout and a 30 minute recovery
+> window. Kueue now waits for a workload's Pods to actually reach Ready after
+> admitting it, and requeues the workload if they do not. The jobs in this lab
+> start in seconds, so you will not notice it here, but on a cluster where
+> images are slow to pull it changes what "admitted" means: admission is no
+> longer the last word. Earlier releases left this off unless you enabled it.
+
 
 ### Step 2: Create a ResourceFlavor
 

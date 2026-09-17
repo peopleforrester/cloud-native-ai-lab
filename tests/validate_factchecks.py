@@ -237,22 +237,22 @@ class TestDRADriverPath:
 
 
 class TestKServeVersion:
-    """Lab 04 must offer KServe v0.19.0 with --server-side as the recommended path."""
+    """Lab 04 must offer KServe v0.20.0 with --server-side as the recommended path."""
 
-    def test_kserve_lab_recommends_v019_server_side(self, repo_root: Path) -> None:
+    def test_kserve_lab_recommends_v020_server_side(self, repo_root: Path) -> None:
         """Lab 04 README must offer a working `kubectl apply --server-side` command
-        that installs KServe v0.19.0 — not just mention it in prose."""
+        that installs KServe v0.20.0 — not just mention it in prose."""
         lab_readme = repo_root / "labs" / "04-kserve-inference" / "README.md"
         content = lab_readme.read_text()
-        # Look for an actual command line installing v0.19.0 with --server-side.
+        # Look for an actual command line installing v0.20.0 with --server-side.
         # Allow line continuations (\) between the flag and the URL.
         pattern = re.compile(
             r"kubectl\s+apply\s+--server-side[\s\S]{0,200}?"
-            r"kserve/releases/download/v0\.19\.0/",
+            r"kserve/releases/download/v0\.20\.0/",
         )
         assert pattern.search(content), (
-            "Lab 04 must include a `kubectl apply --server-side ... v0.19.0/...` "
-            "command, not just reference v0.19.0 in explanatory text"
+            "Lab 04 must include a `kubectl apply --server-side ... v0.20.0/...` "
+            "command, not just reference v0.20.0 in explanatory text"
         )
 
 
