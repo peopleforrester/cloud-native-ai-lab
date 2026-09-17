@@ -74,7 +74,7 @@ One-page summaries of every project covered in the labs:
 | [LeaderWorkerSet](docs/projects/leaderworkerset.md) | Multi-host inference topology | kubernetes-sigs (v0.10.0) |
 | [KServe](docs/projects/kserve.md) | Model serving platform | CNCF Incubating (v0.20.0) |
 | [Knative](docs/projects/knative.md) | Scale-to-zero serverless | CNCF Graduated |
-| [llm-d](docs/projects/llm-d.md) | Distributed LLM inference | Launched by Red Hat (v0.8.1) |
+| [llm-d](docs/projects/llm-d.md) | Distributed LLM inference | Launched by Red Hat (v0.9.0) |
 | [Gateway API Inference](docs/projects/gateway-api-inference.md) | Model-aware routing | GA (InferenceObjective + InferencePool) |
 | [kagent](docs/projects/kagent.md) | Kubernetes-native AI agents | CNCF Sandbox |
 | [MCP](docs/projects/mcp.md) | Model Context Protocol | AAIF / Linux Foundation |

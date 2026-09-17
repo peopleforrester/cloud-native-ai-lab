@@ -11,8 +11,33 @@ MCP is the protocol layer that kagent uses to connect agents to tools — it def
 
 ## Current status
 - **CNCF status:** Not a CNCF project — governed by the Agentic AI Foundation (AAIF) under the Linux Foundation
-- **Latest spec version:** 2025-11-25
+- **Latest spec version:** 2026-07-28 (2025-11-25 is now a past revision)
 - **Key CRDs:** N/A (MCP is a protocol specification, not a Kubernetes operator — see kagent's MCPServer CRD for K8s integration)
+
+### What the 2026-07-28 revision changes
+
+If you learned MCP against the 2025-11-25 spec, three things you were taught are
+no longer true:
+
+- **The protocol is stateless.** The `initialize` and
+  `notifications/initialized` handshake is gone, and so is the `Mcp-Session-Id`
+  header on the Streamable HTTP transport. Every request now carries its own
+  protocol version and client capabilities in `_meta`, so capability negotiation
+  happens per request rather than once per connection. A server that needs state
+  across calls mints an explicit handle and the client passes it back as an
+  ordinary tool argument.
+- **Servers no longer call back into the client.** `sampling/createMessage`,
+  `roots/list` and `elicitation/create` are replaced by Multi Round-Trip
+  Requests: the server returns an `InputRequiredResult` and the client retries
+  the original request carrying `inputResponses`. Every result now has a
+  required `resultType`.
+- **Sampling, Roots and Logging are deprecated**, along with OAuth Dynamic
+  Client Registration. They still function, and the published policy is that
+  removal comes no earlier than the first revision released on or after
+  2027-07-28. `ping` and `logging/setLevel` were removed outright.
+
+A new `server/discover` call advertises supported versions and capabilities up
+front, and Tasks moved out of the core protocol into an official extension.
 
 ## Get started
 - Official docs: [modelcontextprotocol.io](https://modelcontextprotocol.io)
@@ -20,4 +45,4 @@ MCP is the protocol layer that kagent uses to connect agents to tools — it def
 - Related lab: [labs/06-kagent-mcp](../../labs/06-kagent-mcp/)
 
 ## Last verified
-July 2026. All facts checked against official sources.
+September 2026. All facts checked against official sources.
