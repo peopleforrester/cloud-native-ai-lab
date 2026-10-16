@@ -21,6 +21,8 @@ This is `cloud-native-ai-lab`: a hands-on learning resource for Kubernetes engin
 All four gates run in CI on every push. A change that breaks any of them does
 not land.
 
+Test command: `uv sync --dev --locked && uv run ruff check . && uv run ruff format --check . && uv run mypy tests/ && uv run pytest`
+
 ## Audience
 
 Kubernetes practitioners who know pods, deployments, services, and namespaces but have never touched AI/ML workloads. Do NOT assume ML knowledge.
