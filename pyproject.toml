@@ -6,6 +6,10 @@ description = "Hands-on lab for AI workloads on Kubernetes"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# tests/e2e needs the network and runs only through the AGENTS.md `E2E command:`.
+# norecursedirs keeps it out of `uv run pytest`; naming tests/e2e explicitly still collects it.
+# The rest of the list restores pytest's defaults, which setting the option replaces.
+norecursedirs = ["e2e", "*.egg", ".*", "_darcs", "build", "CVS", "dist", "node_modules", "venv", "{arch}"]
 python_files = ["validate_*.py", "test_*.py"]
 python_functions = ["test_*"]
 python_classes = ["Test*"]
