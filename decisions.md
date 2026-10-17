@@ -206,3 +206,18 @@ answers anonymous manifest requests with 401. Once that suite lands, it will
 report this pinned chart as missing even though `helm install` resolves it.
 Filed as a follow-up rather than fixed here, because the suite is not on this
 branch's base.
+
+## 2026-10-17T17:05:00Z · 3.3 · E2E OCI check answers the registry's Bearer challenge (#16)
+
+ghcr.io answers every manifest request without a token with 401, public charts
+included, so the #10 OCI check reported lab 06's `kagent-crds` 0.10.3 chart as
+missing even though `helm install` resolves it. The check now does what Helm
+and other registry clients do: on a 401 whose `WWW-Authenticate` is a `Bearer
+realm=...,service=...,scope=...` challenge, it fetches an anonymous token from
+the realm (HTTPS only) and retries once with it. A second 401, a 404 for an
+unpublished tag, or a failed token request still fails the test. No credentials
+are read or stored. `tests/validate_e2e_registry_auth.py` covers the challenge
+parsing and the single retry offline, so the Test command catches regressions
+there without the network.
+
+This closes the "Still open" note in the #12 entry above.

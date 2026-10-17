@@ -1,8 +1,10 @@
 # ABOUTME: End-to-end check that every remote install artifact the labs fetch still resolves.
 # ABOUTME: Needs outbound HTTPS; fails with a clear message when the network is unreachable.
 
+import json
 import re
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -97,17 +99,67 @@ def _collect() -> tuple[dict[str, list[str]], dict[str, list[str]], dict[str, li
 FETCHES, HELM_REPOS, OCI_CHARTS = _collect()
 
 
-def _get(url: str, accept: str | None = None) -> int:
-    """GET the first byte of `url`, following redirects, and return the final status code."""
+def _get(url: str, accept: str | None = None, token: str | None = None) -> tuple[int, str]:
+    """GET the first byte of `url`, following redirects.
+
+    Returns the final status code and its WWW-Authenticate header ("" when absent).
+    """
     headers = {"User-Agent": USER_AGENT, "Range": "bytes=0-0"}
     if accept:
         headers["Accept"] = accept
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
     request = urllib.request.Request(url, headers=headers)
     try:
         with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
-            return int(response.status)
+            return int(response.status), ""
     except urllib.error.HTTPError as err:
-        return err.code
+        return err.code, err.headers.get("WWW-Authenticate", "")
+
+
+def _bearer_challenge(header: str) -> dict[str, str]:
+    """Parse `Bearer realm="...",service="...",scope="..."` into its parameters.
+
+    Returns {} when the header is not a Bearer challenge or names no realm.
+    """
+    scheme, _, params = header.strip().partition(" ")
+    if scheme.lower() != "bearer":
+        return {}
+    challenge = dict(re.findall(r'(\w+)="([^"]*)"', params))
+    return challenge if challenge.get("realm") else {}
+
+
+def _anonymous_token(challenge: dict[str, str]) -> str:
+    """Fetch a pull token from the challenge's realm, as `helm pull` does for a public chart."""
+    realm = challenge["realm"]
+    assert realm.startswith("https://"), f"Registry token realm is not HTTPS: {realm}"
+    params: dict[str, str] = {
+        key: challenge[key] for key in ("service", "scope") if key in challenge
+    }
+    query = urllib.parse.urlencode(params)
+    request = urllib.request.Request(
+        f"{realm}?{query}" if query else realm, headers={"User-Agent": USER_AGENT}
+    )
+    with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
+        body = json.load(response)
+    # The distribution token spec names the field `token`; OAuth2-style realms use `access_token`.
+    token = body.get("token") or body.get("access_token")
+    assert token, f"Token realm {realm} returned no token for {query}"
+    return str(token)
+
+
+def _get_oci_manifest(url: str) -> int:
+    """GET an OCI manifest, answering a registry's Bearer challenge with an anonymous token.
+
+    ghcr.io returns 401 to any manifest request without a token, even for public charts.
+    On a 401 carrying a Bearer challenge this fetches an anonymous token and retries once.
+    """
+    status, authenticate = _get(url, accept=OCI_MANIFEST_TYPES)
+    challenge = _bearer_challenge(authenticate) if status == 401 else {}
+    if not challenge:
+        return status
+    status, _ = _get(url, accept=OCI_MANIFEST_TYPES, token=_anonymous_token(challenge))
+    return status
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -133,7 +185,7 @@ def test_sources_reference_install_urls() -> None:
 @pytest.mark.parametrize("url", sorted(FETCHES))
 def test_fetched_url_resolves(url: str) -> None:
     """Every URL a lab tells the learner to `kubectl apply -f`, curl, or clone must resolve."""
-    status = _get(url)
+    status, _ = _get(url)
     assert status in (200, 206), (
         f"HTTP {status} for {url}\nReferenced at: {', '.join(FETCHES[url])}"
     )
@@ -142,7 +194,7 @@ def test_fetched_url_resolves(url: str) -> None:
 @pytest.mark.parametrize("url", sorted(HELM_REPOS))
 def test_helm_repo_index_resolves(url: str) -> None:
     """Every `helm repo add` URL must serve an index.yaml, or `helm repo add` fails."""
-    status = _get(url)
+    status, _ = _get(url)
     assert status in (200, 206), (
         f"HTTP {status} for {url}\nReferenced at: {', '.join(HELM_REPOS[url])}"
     )
@@ -151,7 +203,7 @@ def test_helm_repo_index_resolves(url: str) -> None:
 @pytest.mark.parametrize("url", sorted(OCI_CHARTS))
 def test_oci_chart_version_exists(url: str) -> None:
     """Every pinned `helm install oci://... --version X` must name a tag the registry serves."""
-    status = _get(url, accept=OCI_MANIFEST_TYPES)
+    status = _get_oci_manifest(url)
     assert status in (200, 206), (
         f"HTTP {status} for {url}\nReferenced at: {', '.join(OCI_CHARTS[url])}"
     )
