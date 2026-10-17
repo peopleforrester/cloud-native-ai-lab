@@ -113,6 +113,32 @@ has a "Where things live" section pointing there.
 **Do not suggest:** adding CFP dates, future events, attendance plans or travel
 to this repo. They belong in conference-knowledge.
 
+## 2026-10-17T09:40:06Z · 3.3 · E2E command declared: live install-URL checks (#10)
+
+The repo had no end-to-end tests to declare, so this adds the first: an
+end-to-end suite in `tests/e2e/` that fetches every remote artifact a learner is
+told to install from. That covers `kubectl apply -f` URLs, curl and wget
+downloads, `git clone` targets, `helm repo add` indexes, and pinned
+`oci://... --version` charts in the lab READMEs and scripts. A pinned version
+that was never published, or a project that moved its files, fails here. The
+offline `validate_*` gates cannot catch either.
+
+**Split by need, not by skip.** `norecursedirs = ["e2e", ...]` keeps the suite
+out of `uv run pytest`, so the Test command stays offline. `uv run pytest
+tests/e2e` names the directory explicitly and collects it. With no network,
+every E2E test errors with one stated reason (github.com unreachable) and the
+command exits non-zero. A cluster-based E2E (kind, applying each lab's manifests)
+was considered and left for later: kind and kubectl are not on the run host, and
+an untested cluster suite would be worse than none.
+
+**The E2E gate is red on first run, by design.** Lab 06 step 1 applies
+`https://raw.githubusercontent.com/kagent-dev/kagent/main/helm/crds/agent-crd.yaml`,
+which now returns 404. kagent ships its CRDs in `helm/kagent-crds/` under the
+`api.kagent.dev` group, so the fix is a lab 06 rewrite (install path,
+apiVersion, CRD names), not a URL swap. That is public lab content, so it waits
+for Michael and is filed as a follow-up. It was not excluded from the check,
+because excluding it would hide the broken step from learners.
+
 ## 2026-10-17T16:33:34Z · 3.3 · question 259: lab 06 pins kagent v0.10.3 (#12)
 
 **Question 259.** Lab 06 step 1 applied
