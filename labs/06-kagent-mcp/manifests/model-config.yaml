@@ -1,0 +1,29 @@
+# ABOUTME: kagent ModelConfig naming the LLM provider, model, and API key Secret an Agent uses.
+# ABOUTME: Schema matches the kagent.dev/v1alpha2 ModelConfig CRD in the kagent-crds 0.10.3 chart.
+
+apiVersion: kagent.dev/v1alpha2
+kind: ModelConfig
+metadata:
+  name: k8s-helper-model
+  namespace: agents
+spec:
+  # provider identifies the LLM backend. The CRD accepts Anthropic, OpenAI,
+  # AzureOpenAI, Ollama, Gemini, GeminiVertexAI, AnthropicVertexAI, Bedrock,
+  # SAPAICore and Foundry. Each provider has its own optional settings block
+  # (openAI, anthropic, ollama, ...), and only the block matching `provider`
+  # may be set.
+  provider: OpenAI
+
+  # model is the identifier your provider uses for the model.
+  model: gpt-4o-mini
+
+  # apiKeySecret and apiKeySecretKey point at a Kubernetes Secret in the same
+  # namespace that holds the API key. The kagent controller reads it when it
+  # runs the agent. This lab installs only the CRDs, so the Secret does not need
+  # to exist for the ModelConfig to be accepted.
+  apiKeySecret: llm-api-key
+  apiKeySecretKey: OPENAI_API_KEY
+
+  # openAI holds OpenAI-specific settings. Set baseUrl to use any
+  # OpenAI-compatible endpoint, such as a model you serve yourself with KServe.
+  openAI: {}

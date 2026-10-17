@@ -1,5 +1,5 @@
-# ABOUTME: MCPServer CRD defining a tool source that exposes Kubernetes operations via MCP.
-# ABOUTME: The agent discovers available tools from this server at runtime using MCP protocol.
+# ABOUTME: kmcp MCPServer that runs kagent's Kubernetes tools as an MCP server in the cluster.
+# ABOUTME: Schema matches the kagent.dev/v1alpha1 MCPServer CRD that kagent-crds 0.10.3 bundles.
 
 apiVersion: kagent.dev/v1alpha1
 kind: MCPServer
@@ -7,49 +7,33 @@ metadata:
   name: kubernetes-tools
   namespace: agents
 spec:
-  # description helps agents and humans understand what tools this server provides.
-  description: "MCP server providing Kubernetes cluster inspection and management tools."
+  # deployment describes the container that runs the MCP server. The kmcp
+  # controller turns it into a Deployment and a Service.
+  deployment:
+    # kagent ships its Kubernetes MCP tools inside the consolidated
+    # kagent-dev/kagent/tools image, which also bundles helm, prometheus,
+    # argo, istio, cilium and kubescape tooling. 0.3.0 is the version the
+    # kagent 0.10.3 Helm chart deploys.
+    image: ghcr.io/kagent-dev/kagent/tools:0.3.0
 
-  # transport defines how the agent communicates with this MCP server.
-  # - stdio: The MCP server runs as a subprocess (co-located with the agent).
-  #   Good for local development and simple setups.
-  # - sse: The MCP server runs as a separate service, communicating over
-  #   Server-Sent Events (HTTP streaming). Better for production, allowing
-  #   the MCP server to scale independently.
-  transport: stdio
+    # cmd and args start the server. --stdio speaks MCP over stdin/stdout,
+    # --tools=k8s registers only the Kubernetes tool set, and --read-only
+    # leaves out every tool that changes the cluster.
+    cmd: /tool-server
+    args:
+      - "--stdio"
+      - "--tools=k8s"
+      - "--read-only"
 
-  # image is the container image for the MCP server.
-  # This image must implement the MCP protocol and expose tools
-  # through the standard handshake mechanism.
-  #
-  # kagent ships its kubernetes MCP tools inside the consolidated
-  # kagent-dev/kagent/tools image, which also bundles helm, prometheus,
-  # argo, istio, cilium, and grafana tooling. The `tools:` list below
-  # filters this server to expose only the kubernetes subset.
-  image: ghcr.io/kagent-dev/kagent/tools:0.2.1
+    # port is where the Service listens. With stdio transport, kmcp runs a
+    # small adapter in the pod that accepts MCP over HTTP on this port and
+    # passes it to the server's stdin/stdout.
+    port: 3000
 
-  # args are command-line arguments passed to the MCP server container.
-  args:
-    - "--transport=stdio"
-
-  # env sets environment variables for the MCP server container.
-  # Use these for configuration that does not contain secrets.
-  env:
-    - name: KUBECONFIG
-      value: /var/run/secrets/kubernetes.io/serviceaccount/token
-
-  # tools lists the specific tools this MCP server exposes.
-  # When omitted, all tools from the server are available.
-  # Listing them explicitly provides documentation and allows
-  # fine-grained access control.
-  tools:
-    - name: get_pods
-      description: "List pods in a namespace with their status"
-    - name: get_events
-      description: "Get recent events for a namespace or resource"
-    - name: get_logs
-      description: "Retrieve logs from a specific pod"
-    - name: describe_resource
-      description: "Get detailed information about any Kubernetes resource"
-    - name: get_nodes
-      description: "List cluster nodes with capacity and allocatable resources"
+  # transportType is how the server itself speaks MCP:
+  # - stdio: the server reads and writes MCP on stdin/stdout, and kmcp's
+  #   adapter puts it on the network. Most published MCP servers work this way.
+  # - http: the server listens for MCP over HTTP itself. Set httpTransport
+  #   with its targetPort and path.
+  transportType: stdio
+  stdioTransport: {}

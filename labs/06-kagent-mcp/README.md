@@ -4,13 +4,14 @@
 
 - What AI agents are and why they belong on Kubernetes
 - The Model Context Protocol (MCP) and how it standardizes tool access for LLMs
-- How to deploy a kagent Agent definition on your cluster
+- How to deploy a kagent Agent definition and the ModelConfig it uses
 - How to configure an MCP server as a tool source for an agent
 - Where agentgateway and ToolHive fit for production deployments
 
 ## Prerequisites
 
 - Lab 00 completed (kind cluster running with kubectl configured)
+- `helm` installed and available on your PATH
 
 ## Background
 
@@ -35,9 +36,16 @@ providers. For Kubernetes operators, this means you can give an agent access to
 your cluster, your monitoring stack, and your incident management system through
 standardized, discoverable interfaces.
 
-**kagent** brings agents to Kubernetes as native resources. It defines CRDs for
-Agent (the LLM configuration and instructions), MCPServer (tool sources), and
-ToolServer (individual tool endpoints). For production deployments, two
+**kagent** brings agents to Kubernetes as native resources. This lab uses three
+of its CRDs, all in the `kagent.dev` API group: Agent (the instructions and the
+tools an agent may call), ModelConfig (which LLM provider and model to use, and
+where the API key is stored), and MCPServer (an MCP server that kagent runs in
+the cluster as a tool source). MCPServer comes from kmcp, a kagent subproject
+whose CRD the kagent CRD chart installs alongside the core ones. kagent also
+has RemoteMCPServer, for MCP servers already running somewhere else. This lab
+pins kagent 0.10.3. The kagent 1.0 releases, still in alpha as of October 2026,
+move to a different API group and drop MCPServer, so these manifests do not
+apply to them. For production deployments, two
 additional projects are worth knowing: **agentgateway** provides authentication,
 rate limiting, and observability for MCP traffic (like an API gateway for tool
 access), and **ToolHive** manages the lifecycle of MCP servers as containers with
@@ -48,23 +56,30 @@ is a separate concern.
 
 ### Step 1: Install kagent CRDs
 
-Install the kagent custom resource definitions:
+kagent publishes its custom resource definitions as a Helm chart called
+`kagent-crds`. Install it at a pinned version:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/kagent-dev/kagent/main/helm/crds/agent-crd.yaml
+helm install kagent-crds oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds \
+  --version 0.10.3 \
+  --namespace kagent \
+  --create-namespace
 ```
+
+This installs only the CRDs. The kagent controller, which turns these resources
+into running agents, is a separate chart (`kagent`) that this lab does not
+install.
 
 Verify the CRDs are installed:
 
 ```bash
-kubectl get crds | grep kagent
+kubectl get crds | grep kagent.dev
 ```
 
-You should see CRDs like `agents.kagent.dev` and `mcpservers.kagent.dev`.
-
-> **Note:** If the URL above is not available (the project may restructure its
-> repo), check https://github.com/kagent-dev/kagent for current installation
-> instructions. The CRD names and API group may differ from what is shown here.
+You should see `agents.kagent.dev`, `modelconfigs.kagent.dev` and
+`mcpservers.kagent.dev`, along with the other kagent CRDs:
+`agentharnesses`, `memories`, `modelproviderconfigs`, `remotemcpservers`,
+`sandboxagents` and `toolservers`.
 
 ### Step 2: Create a namespace and deploy an Agent definition
 
@@ -74,23 +89,31 @@ Create a namespace for agent workloads:
 kubectl apply -f manifests/namespace.yaml
 ```
 
-Apply the Agent manifest:
+Apply the ModelConfig, then the Agent that uses it:
 
 ```bash
+kubectl apply -f manifests/model-config.yaml
 kubectl apply -f manifests/agent.yaml
 ```
 
-Inspect the agent resource:
+Inspect the resources:
 
 ```bash
-kubectl get agents -n agents
+kubectl get modelconfigs,agents -n agents
 kubectl describe agent k8s-helper -n agents
 ```
 
+The ModelConfig resource defines:
+- Which LLM provider and model to use
+- Which Kubernetes Secret holds the API key
+
 The Agent resource defines:
-- Which LLM to use (model name and endpoint)
+- Its type: `Declarative` (kagent runs it from this definition) or `BYO` (you
+  bring your own agent image)
+- Which ModelConfig to use
 - System instructions (what the agent knows and how it should behave)
-- Which tool sources (MCP servers) the agent can access
+- Which tool sources (MCP servers) the agent can access, and which of their
+  tools it may call
 
 ### Step 3: Deploy an MCP server configuration
 
@@ -108,9 +131,14 @@ kubectl describe mcpserver kubernetes-tools -n agents
 ```
 
 The MCPServer resource defines:
-- Where the MCP server is running (container image or external URL)
-- What transport protocol to use (stdio or SSE/HTTP)
-- Which tools it exposes
+- The container that runs the MCP server (image, command and arguments)
+- How the server speaks MCP: `stdio` (over stdin/stdout, which kmcp puts on the
+  network for it) or `http`
+- The port its Service listens on
+
+The server here runs kagent's Kubernetes tools in read-only mode. The agent's
+`toolNames` list narrows that further to four tools: list resources, describe
+a resource, read events and read pod logs.
 
 ### Step 4: Verify the resources
 
@@ -118,7 +146,7 @@ Check that both resources are created and linked:
 
 ```bash
 # List all agent-related resources
-kubectl get agents,mcpservers -n agents
+kubectl get agents,modelconfigs,mcpservers -n agents
 
 # Check for any error events
 kubectl get events -n agents --sort-by='.lastTimestamp'
@@ -126,10 +154,12 @@ kubectl get events -n agents --sort-by='.lastTimestamp'
 
 > **Honest limitation:** On a kind cluster without the full kagent controller
 > running, these resources will be created as CRD objects but the agent will
-> not actually execute. The controller that reconciles Agent resources into
-> running pods with LLM connections requires additional infrastructure (an LLM
-> endpoint, the kagent operator deployment). This lab focuses on understanding
-> the resource model: the CRDs and their relationships.
+> not actually execute. The controllers that reconcile Agent and MCPServer
+> resources into running pods need the `kagent` Helm chart, an LLM endpoint,
+> and the API key Secret the ModelConfig names. The MCP server's service
+> account would also need RBAC permission to read the cluster. This lab
+> focuses on understanding the resource model: the CRDs and their
+> relationships.
 
 ### Step 5: Understand production considerations
 
@@ -175,27 +205,33 @@ https://github.com/kagent-dev/kagent.
 
 ```bash
 # CRDs should be installed
-kubectl get crds | grep kagent
+kubectl get crds | grep kagent.dev
 
-# Agent and MCPServer resources should exist
+# Agent, ModelConfig and MCPServer resources should exist
 kubectl get agents -n agents
+kubectl get modelconfigs -n agents
 kubectl get mcpservers -n agents
 
 # Resources should have the expected names
 kubectl get agent k8s-helper -n agents -o yaml
+kubectl get modelconfig k8s-helper-model -n agents -o yaml
 kubectl get mcpserver kubernetes-tools -n agents -o yaml
 ```
 
 ## What just happened?
 
-You defined two Kubernetes-native resources that represent an AI agent system:
+You defined three Kubernetes-native resources that represent an AI agent system:
 
-1. **Agent**: A CRD that declares an AI agent's identity: which LLM it uses,
-   what instructions it follows, and which tool sources it can access. This is
-   the Kubernetes-native way to manage agent configurations: versioned, auditable,
-   and deployable through standard GitOps workflows.
+1. **Agent**: A CRD that declares an AI agent's identity: which ModelConfig it
+   uses, what instructions it follows, and which tool sources it can access.
+   This is the Kubernetes-native way to manage agent configurations: versioned,
+   auditable, and deployable through standard GitOps workflows.
 
-2. **MCPServer**: A CRD that declares a tool source using the Model Context
+2. **ModelConfig**: A CRD that declares which LLM provider and model to use and
+   where the API key lives. Keeping it separate means many agents can share one
+   model configuration, and you can switch models without editing each agent.
+
+3. **MCPServer**: A CRD that declares a tool source using the Model Context
    Protocol. Instead of hardcoding tool integrations into agent code, MCP servers
    expose tools through a standardized discovery and invocation protocol.
 
@@ -209,10 +245,13 @@ model you use for every other workload.
 ```bash
 kubectl delete -f manifests/mcp-server.yaml
 kubectl delete -f manifests/agent.yaml
+kubectl delete -f manifests/model-config.yaml
 kubectl delete namespace agents
 
-# Remove CRDs (optional: only if you want to fully clean up)
-kubectl delete -f https://raw.githubusercontent.com/kagent-dev/kagent/main/helm/crds/agent-crd.yaml
+# Remove CRDs (optional: only if you want to fully clean up).
+# Uninstalling the chart deletes the kagent CRDs and any resources of those kinds.
+helm uninstall kagent-crds --namespace kagent
+kubectl delete namespace kagent
 ```
 
 ## Next step

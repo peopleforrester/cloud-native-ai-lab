@@ -112,3 +112,71 @@ has a "Where things live" section pointing there.
 
 **Do not suggest:** adding CFP dates, future events, attendance plans or travel
 to this repo. They belong in conference-knowledge.
+
+## 2026-10-17T16:33:34Z · 3.3 · question 259: lab 06 pins kagent v0.10.3 (#12)
+
+**Question 259.** Lab 06 step 1 applied
+`https://raw.githubusercontent.com/kagent-dev/kagent/main/helm/crds/agent-crd.yaml`,
+which kagent removed (HTTP 404). The manifests were also wrong on their own
+terms: `agent.yaml` used `model.provider`, `apiEndpoint`, `systemPrompt` and
+`mcpServers`, and `mcp-server.yaml` used `transport`, `image`, `args` and
+`tools`. No kagent CRD has ever served those fields. Which kagent line should
+the rewrite pin: v0.10.3 (newest non-alpha, 2026-10-02) or v1.0.0-alpha14
+(2026-10-16)?
+
+**Answer:** A: pin v0.10.3. Install with `helm install kagent-crds
+oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds --version 0.10.3 --namespace
+kagent --create-namespace`, then rewrite agent.yaml as kagent.dev/v1alpha2
+Agent (Declarative) plus a ModelConfig and mcp-server.yaml as a kmcp
+kagent.dev/v1alpha1 MCPServer.
+
+**Decided by:** hecaton's research under Michael's standing rules, not by
+Michael.
+
+**What it changes:**
+
+- Lab 06 step 1 installs the `kagent-crds` chart at 0.10.3, the install command
+  in kagent's own 0.x installation docs with a version added. Clean-up uses
+  `helm uninstall kagent-crds`, which removes the CRDs because the chart keeps
+  them in `templates/` with no keep policy. The README now names the CRDs
+  as the chart installs them, `agents.kagent.dev`, `modelconfigs.kagent.dev`,
+  `mcpservers.kagent.dev` and six others, and adds `helm` to the
+  prerequisites.
+- `manifests/agent.yaml` is a `kagent.dev/v1alpha2` Agent, `type: Declarative`.
+  It names a ModelConfig and references the MCPServer by `apiGroup`, `kind` and
+  `name`, with `toolNames` limited to four read-only tools that kagent-tools
+  0.3.0 registers.
+- New `manifests/model-config.yaml`: a `kagent.dev/v1alpha2` ModelConfig
+  (OpenAI, `gpt-4o-mini` as in kagent's OpenAI provider docs, key in Secret
+  `llm-api-key`).
+- `manifests/mcp-server.yaml` is a kmcp `kagent.dev/v1alpha1` MCPServer running
+  `ghcr.io/kagent-dev/kagent/tools:0.3.0` (up from 0.2.1, the version kagent
+  0.10.3's chart deploys) as `/tool-server --stdio --tools=k8s --read-only`,
+  stdio transport.
+- `docs/projects/kagent.md` drops "Team, Tool", which are not in kagent's CRD
+  set, and lists the v0.10.3 CRDs.
+
+**How it was checked.** The published chart was pulled from ghcr.io and the
+three manifests were validated against its CRD OpenAPI schemas, with unknown
+fields rejected as the API server's strict field validation does. Its CEL rules
+were checked by hand. The old manifests fail the same validation. The bundled
+kmcp CRD is byte-identical to kmcp v0.3.0's `mcpserver-crd.yaml`. No kind
+cluster was used, so behaviour against a live API server is still unverified.
+
+**Do not suggest:** `api.kagent.dev` or `v1alpha3` for this lab. Those belong to
+the v1.0.0 alphas, which also drop MCPServer. Do not suggest installing CRDs
+from a `main`-branch raw URL either. Revisit the pin when kagent 1.0.0 ships
+without an alpha suffix.
+
+**Gate added:** `TestKagentLab` in `tests/validate_factchecks.py` checks five
+things: the pinned chart and version, no `api.kagent.dev` group, the served
+apiVersion per kind, top-level spec fields against the CRD schema, and that the
+Agent's ModelConfig and MCPServer references resolve inside the lab. Four of the
+five fail against the old lab 06. The fifth, the alpha-group check, passes
+because the old lab never used that group.
+
+**Still open:** the E2E OCI check from #10 sends no bearer token, and ghcr.io
+answers anonymous manifest requests with 401. Once that suite lands, it will
+report this pinned chart as missing even though `helm install` resolves it.
+Filed as a follow-up rather than fixed here, because the suite is not on this
+branch's base.
