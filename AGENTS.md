@@ -70,6 +70,12 @@ Each lab has a `manifests/` subdirectory containing all Kubernetes YAML files fo
 
 All code files (Python, shell scripts) start with a 2-line ABOUTME comment describing the file's purpose.
 
+## Where things live
+
+- **Conference information** (which events, CFP dates and deadlines, submission status, attendance, organizer contacts, the speaking record, travel): `peopleforrester/conference-knowledge` is the source of truth. Read it from there and do not keep a copy here. To change it, file an `agent-task` issue on that repo; never write into its checkout from this one.
+- **The talk itself** (content, argument, abstract, research): `peopleforrester/talks-knowledge`.
+- **What stays here:** `docs/talk-outline.md` and the README attribution record the KubeCon EU 2026 talk as published and delivered on 24 March 2026. They are part of this resource, frozen by design (see `decisions.md`), and are not event state to sync.
+
 ## Mandatory fact-check corrections
 
 These corrections have been verified against official sources. They MUST be applied whenever these topics are mentioned:

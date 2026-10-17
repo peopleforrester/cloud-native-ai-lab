@@ -88,3 +88,27 @@ reverting the apiVersion and watching it fail, rather than assuming.
 files here rather than 11, and its default rule set grew (0.15 passed this tree
 clean, 0.16 flagged SIM102). Both were confirmed by running the two versions
 side by side. Everything passes, so this was adopted rather than pinned back.
+
+## 2026-10-17T08:55:59Z · 3.3 · conference-knowledge owns conference information (#8)
+
+`peopleforrester/conference-knowledge` became the source of truth for event
+state on 2026-10-03. Swept the tree for conference material. Found no CFP notes,
+submission status, attendance plans, organizer contacts or travel. Found three
+places that state facts about KubeCon EU 2026:
+
+- `docs/talk-outline.md` header: Cloud Native University, Tuesday 24 March 2026,
+  13:20, RAI Amsterdam Convention Center.
+- `README.md` attribution: delivered 24 March 2026 at the RAI in Amsterdam.
+- `docs/landscape-report.md`: the event ran 23-26 March 2026 at the RAI with
+  12,000+ expected attendees, as written in March 2026.
+
+**Kept, not replaced with pointers.** These are the published record of a talk
+already given and a dated report, not live event state. The outline is frozen by
+design (see the 2026-08-30 entry), and swapping public prose for a pointer to a
+private repo would leave readers of a public resource with a dead reference. The
+speaking-record facts were handed to conference-knowledge as an `agent-task`
+follow-up so its record can be checked against this source, and AGENTS.md now
+has a "Where things live" section pointing there.
+
+**Do not suggest:** adding CFP dates, future events, attendance plans or travel
+to this repo. They belong in conference-knowledge.
