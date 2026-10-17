@@ -3,8 +3,10 @@
 
 import re
 from pathlib import Path
+from typing import Any, ClassVar
 
 import pytest
+import yaml
 
 EXCLUDED_DIRS = ["claude-ai-context", "transcripts", "node_modules", "__pycache__", ".git/"]
 
@@ -340,4 +342,144 @@ class TestLlmdAttribution:
                 pytest.fail(
                     f"{rel} describes llm-d as 'co-created/co-built' without "
                     f"distinguishing Red Hat as the project launcher"
+                )
+
+
+class TestKagentLab:
+    """Lab 06 must install and use the kagent CRDs as kagent v0.10.3 ships them.
+
+    The lab once applied helm/crds/agent-crd.yaml from kagent's main branch, which
+    kagent removed (HTTP 404), and its manifests used fields no kagent CRD ever
+    served. kagent-crds 0.10.3 serves Agent and ModelConfig at kagent.dev/v1alpha2
+    and bundles kmcp's MCPServer at kagent.dev/v1alpha1. The v1.0.0 alphas move to
+    api.kagent.dev/v1alpha3 and have no MCPServer, so that group must not appear.
+    The field lists below are the top-level spec properties of those CRD schemas.
+    """
+
+    LAB = Path("labs") / "06-kagent-mcp"
+    CHART = "oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds"
+    CHART_VERSION = "0.10.3"
+    API_VERSIONS: ClassVar[dict[str, str]] = {
+        "Agent": "kagent.dev/v1alpha2",
+        "ModelConfig": "kagent.dev/v1alpha2",
+        "MCPServer": "kagent.dev/v1alpha1",
+    }
+    SPEC_FIELDS: ClassVar[dict[str, set[str]]] = {
+        "Agent": {
+            "allowedNamespaces",
+            "byo",
+            "declarative",
+            "description",
+            "documentationUrl",
+            "iconUrl",
+            "provider",
+            "sandbox",
+            "skills",
+            "type",
+            "version",
+        },
+        "ModelConfig": {
+            "anthropic",
+            "anthropicVertexAI",
+            "apiKeyPassthrough",
+            "apiKeySecret",
+            "apiKeySecretKey",
+            "azureOpenAI",
+            "bedrock",
+            "defaultHeaders",
+            "foundry",
+            "gemini",
+            "geminiVertexAI",
+            "model",
+            "ollama",
+            "openAI",
+            "provider",
+            "sapAICore",
+            "tls",
+        },
+        "MCPServer": {"deployment", "httpTransport", "stdioTransport", "timeout", "transportType"},
+    }
+
+    def _manifests(self, repo_root: Path) -> list[tuple[str, dict[str, Any]]]:
+        docs: list[tuple[str, dict[str, Any]]] = []
+        for path in sorted((repo_root / self.LAB / "manifests").glob("*.yaml")):
+            rel = str(path.relative_to(repo_root))
+            docs.extend((rel, doc) for doc in yaml.safe_load_all(path.read_text()) if doc)
+        return docs
+
+    def _by_kind(self, repo_root: Path, kind: str) -> list[dict[str, Any]]:
+        return [doc for _, doc in self._manifests(repo_root) if doc.get("kind") == kind]
+
+    def test_readme_installs_pinned_crd_chart(self, repo_root: Path) -> None:
+        """Step 1 installs the kagent-crds chart at the pinned version, not a branch URL."""
+        content = (repo_root / self.LAB / "README.md").read_text()
+        install = re.search(
+            r"helm\s+install\s+kagent-crds\s+(\S+)\s+\\?\s*--version\s+(\S+)", content
+        )
+        assert install, "Lab 06 must install CRDs with `helm install kagent-crds ... --version`"
+        assert install.groups() == (self.CHART, self.CHART_VERSION), (
+            f"Lab 06 installs {install.groups()}, expected ({self.CHART}, {self.CHART_VERSION})"
+        )
+        assert "helm/crds/agent-crd.yaml" not in content, (
+            "Lab 06 still references the removed helm/crds/agent-crd.yaml"
+        )
+
+    def test_no_kagent_v1_alpha_group(self, repo_root: Path) -> None:
+        """api.kagent.dev belongs to the v1.0.0 alphas, which this lab does not pin."""
+        bad = [
+            f"{rel}: {doc.get('apiVersion')}"
+            for rel, doc in self._manifests(repo_root)
+            if str(doc.get("apiVersion", "")).startswith("api.kagent.dev/")
+        ]
+        assert not bad, "Lab 06 manifests use the kagent v1 alpha group:\n" + "\n".join(bad)
+
+    def test_manifests_use_served_api_versions(self, repo_root: Path) -> None:
+        """Each kagent kind declares the apiVersion kagent-crds 0.10.3 serves it at."""
+        seen = set()
+        bad: list[str] = []
+        for rel, doc in self._manifests(repo_root):
+            kind = doc.get("kind")
+            if kind not in self.API_VERSIONS:
+                continue
+            seen.add(kind)
+            if doc.get("apiVersion") != self.API_VERSIONS[kind]:
+                bad.append(f"{rel}: {kind} at {doc.get('apiVersion')}")
+        assert not bad, "Wrong apiVersion for kagent kinds:\n" + "\n".join(bad)
+        assert seen == set(self.API_VERSIONS), f"Lab 06 is missing {set(self.API_VERSIONS) - seen}"
+
+    def test_spec_fields_exist_in_crd_schema(self, repo_root: Path) -> None:
+        """Every top-level spec field is one the CRD schema defines."""
+        bad: list[str] = []
+        for rel, doc in self._manifests(repo_root):
+            allowed = self.SPEC_FIELDS.get(doc.get("kind", ""))
+            if allowed is None:
+                continue
+            unknown = set(doc.get("spec", {})) - allowed
+            if unknown:
+                bad.append(f"{rel}: {doc['kind']} has unknown spec fields {sorted(unknown)}")
+        assert not bad, "\n".join(bad)
+
+    def test_agent_references_resolve(self, repo_root: Path) -> None:
+        """The Agent's ModelConfig and MCP server references name resources in the lab."""
+        model_configs = {doc["metadata"]["name"] for doc in self._by_kind(repo_root, "ModelConfig")}
+        mcp_servers = {doc["metadata"]["name"] for doc in self._by_kind(repo_root, "MCPServer")}
+        agents = self._by_kind(repo_root, "Agent")
+        assert agents, "Lab 06 has no Agent manifest"
+        for agent in agents:
+            spec = agent["spec"]
+            assert spec.get("type") == "Declarative" and "declarative" in spec, (
+                "Lab 06's Agent must be type Declarative with a declarative block"
+            )
+            declarative = spec["declarative"]
+            assert declarative.get("modelConfig") in model_configs, (
+                f"Agent modelConfig {declarative.get('modelConfig')!r} not in {model_configs}"
+            )
+            for tool in declarative.get("tools", []):
+                assert tool.get("type") == "McpServer", f"Unexpected tool type in {tool}"
+                ref = tool["mcpServer"]
+                assert (ref.get("apiGroup"), ref.get("kind")) == ("kagent.dev", "MCPServer"), (
+                    f"Tool reference {ref} must be apiGroup kagent.dev, kind MCPServer"
+                )
+                assert ref.get("name") in mcp_servers, (
+                    f"Tool reference {ref.get('name')!r} not in {mcp_servers}"
                 )

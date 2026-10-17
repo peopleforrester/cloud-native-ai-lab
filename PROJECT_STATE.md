@@ -64,7 +64,8 @@ roughly seven, three and nine week intervals.
 | Knative Serving, net-kourier (lab 04) | knative-v1.23.0 |
 | LeaderWorkerSet (docs) | v0.10.0 |
 | llm-d (docs) | v0.9.0 |
-| kagent tools image (lab 06) | 0.2.1 |
+| kagent-crds Helm chart (lab 06) | 0.10.3 |
+| kagent tools image (lab 06) | 0.3.0 |
 | kind, kindest/node (lab 00) | v0.33.0, v1.37.0 (digest-pinned) |
 | MCP spec | 2026-07-28 |
 | Gateway API Inference Extension | v1.6.1 |

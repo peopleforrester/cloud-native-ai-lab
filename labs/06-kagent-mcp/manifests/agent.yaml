@@ -1,7 +1,7 @@
-# ABOUTME: kagent Agent CRD defining an AI agent with LLM config and tool sources.
-# ABOUTME: Represents a Kubernetes-native agent that can use MCP servers as tools.
+# ABOUTME: kagent Agent defining an AI agent's model, instructions, and MCP tool sources.
+# ABOUTME: Schema matches the kagent.dev/v1alpha2 Agent CRD in the kagent-crds 0.10.3 chart.
 
-apiVersion: kagent.dev/v1alpha1
+apiVersion: kagent.dev/v1alpha2
 kind: Agent
 metadata:
   name: k8s-helper
@@ -11,35 +11,44 @@ spec:
   # It appears in dashboards and tool listings.
   description: "A Kubernetes helper agent that can inspect cluster state and suggest fixes."
 
-  # model configures which LLM the agent uses for reasoning.
-  model:
-    # provider identifies the LLM backend (openai, anthropic, ollama, etc.)
-    provider: openai
-    # name is the model identifier. Use the actual model name from your provider.
-    name: gpt-4o
-    # apiEndpoint is where the LLM API is hosted.
-    # For local models (Ollama), use http://ollama.default.svc.cluster.local:11434
-    # For cloud models, use the provider's API endpoint.
-    apiEndpoint: https://api.openai.com/v1
-    # apiKeySecret references a Kubernetes Secret containing the API key.
-    # The secret must exist in the same namespace as the Agent.
-    apiKeySecret:
-      name: llm-api-key
-      key: api-key
+  # type is Declarative or BYO. A Declarative agent is described entirely by
+  # this resource: kagent runs it for you. BYO ("bring your own") means you
+  # supply a container image that implements the agent yourself.
+  type: Declarative
 
-  # systemPrompt defines the agent's behavior and personality.
-  # This is the system message sent to the LLM with every conversation.
-  systemPrompt: |
-    You are a Kubernetes cluster assistant. You help operators understand
-    cluster state, diagnose issues, and suggest fixes.
+  declarative:
+    # modelConfig names the ModelConfig resource (in the same namespace) that
+    # says which LLM provider and model to use, and where the API key lives.
+    # See model-config.yaml.
+    modelConfig: k8s-helper-model
 
-    Rules:
-    - Always explain what you are about to do before taking an action.
-    - Never delete resources without explicit confirmation.
-    - When diagnosing issues, check events, pod status, and logs in that order.
-    - Provide kubectl commands that the user can run manually as an alternative.
+    # systemMessage defines the agent's behavior. It is the system prompt sent
+    # to the LLM with every conversation.
+    systemMessage: |
+      You are a Kubernetes cluster assistant. You help operators understand
+      cluster state, diagnose issues, and suggest fixes.
 
-  # mcpServers lists the MCP server resources this agent can access.
-  # Each entry references an MCPServer resource in the same namespace.
-  mcpServers:
-    - name: kubernetes-tools
+      Rules:
+      - Always explain what you are about to do before taking an action.
+      - Never delete resources without explicit confirmation.
+      - When diagnosing issues, check events, pod status, and logs in that order.
+      - Provide kubectl commands that the user can run manually as an alternative.
+
+    # tools lists the tool sources this agent can call. Each McpServer entry
+    # references an MCP server resource by apiGroup, kind and name. kind is
+    # MCPServer (a server kagent runs in the cluster, see mcp-server.yaml) or
+    # RemoteMCPServer (one already running elsewhere, reached by URL).
+    tools:
+      - type: McpServer
+        mcpServer:
+          apiGroup: kagent.dev
+          kind: MCPServer
+          name: kubernetes-tools
+          # toolNames limits the agent to these tools, even though the server
+          # exposes more. Leaving it out gives the agent every tool the server
+          # offers. These are read-only tools from the kagent tools server.
+          toolNames:
+            - k8s_get_resources
+            - k8s_describe_resource
+            - k8s_get_events
+            - k8s_get_pod_logs
