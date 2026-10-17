@@ -112,3 +112,54 @@ has a "Where things live" section pointing there.
 
 **Do not suggest:** adding CFP dates, future events, attendance plans or travel
 to this repo. They belong in conference-knowledge.
+
+## 2026-10-17T12:17:18Z · 3.3 · Kind-cluster E2E added, not yet run on a cluster (#13)
+
+`tests/e2e/validate_kind_cluster.py` creates a kind cluster from
+`labs/00-setup/kind-cluster.yaml`, checks the three nodes and their zone labels,
+then works through labs 00 to 06 in order on that one cluster. For each lab it
+runs the lab's install steps and applies every file in its `manifests/`. Labs
+share the cluster because lab 03 queues a JobSet through lab 01's Kueue queue.
+
+**The plan follows the labs; it does not restate them.** The install commands
+in `tests/e2e/lab_plan.py` are the README's (or `setup.sh`'s) own commands,
+verbatim. `tests/validate_e2e_plan.py` runs offline in the Test command and
+fails in either direction: a plan command the lab no longer shows (a bumped
+pin), or an install-shaped command the lab shows but the plan does not run. Each
+was checked by editing a README and watching the test fail. Manifest applies are
+read from the README in order, keeping its `-n` flags and `create` for
+generateName Jobs. Any manifest the README never applies is applied afterwards,
+so every file reaches the API server. Lab 02's `resource-claim-template.yaml` is
+the only such file today.
+
+**Isolated from the learner's own setup.** The cluster is named `cnai-lab-e2e`,
+not `ai-workshop`, so the suite never reuses or deletes a learner's cluster. It
+fails rather than adopting a `cnai-lab-e2e` that already exists. kubectl and
+Helm get their own kubeconfig and Helm home in the pytest temp dir. Commands
+run without a shell, and output is captured so a failure shows stdout and
+stderr.
+
+**Not yet run against a live cluster.** On the run host kind, kubectl and helm
+are not installed, and the Docker daemon refuses this user. The suite was
+exercised with stub binaries that log each call, which confirmed the command
+sequence, working directories, the isolated environment and teardown. Against
+the real host it errors on every test with `Missing: kind, kubectl, helm`. With
+the tools stubbed it errors with the `docker info` permission failure. Both exit
+non-zero. The 2026-08-30 note still holds: no lab has been validated on a live
+cluster.
+
+**Expected red on first live run, left visible rather than excluded:**
+
+- Lab 05 has no install step, so `gateway.yaml`, `inference-pool.yaml` and
+  `inference-objective.yaml` will be rejected because their kinds are not
+  served. The lab needs Gateway API, Inference Extension and llm-d-router CRD
+  installs, which is a lab content change.
+- Lab 06's kagent CRD URL returns 404 (found by #10). The E2E stops lab 06 at
+  that install step.
+
+Lab 02 Part B builds its own demo cluster for the DRA example driver, so its
+`helm upgrade -i` is listed in `NOT_RUN` with that reason. Part A's manifests
+use the built-in `resource.k8s.io/v1` API and apply on the lab cluster with no
+driver. The pod stays Pending, which is expected without a driver.
+
+No new dependency: the suite uses the standard library and pytest only.

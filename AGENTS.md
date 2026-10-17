@@ -23,6 +23,20 @@ not land.
 
 Test command: `uv sync --dev --locked && uv run ruff check . && uv run ruff format --check . && uv run mypy tests/ && uv run pytest`
 
+E2E command: `uv sync --dev --locked && uv run pytest tests/e2e`
+
+The E2E suite lives in `tests/e2e/`. `uv run pytest` does not collect it
+(`norecursedirs` in `pyproject.toml`), so the Test command stays offline.
+`tests/e2e/validate_kind_cluster.py` creates a kind cluster named `cnai-lab-e2e`
+from `labs/00-setup/kind-cluster.yaml`, runs each lab's install steps at their
+pinned versions, applies every file in each lab's `manifests/`, then deletes the
+cluster. It needs kind, kubectl, helm, a Docker daemon the user can reach,
+outbound HTTPS, and host ports 30000-30002 free. It fails at once, naming what
+is missing, when any of them is absent. The plan it runs is in
+`tests/e2e/lab_plan.py`, and `tests/validate_e2e_plan.py` (offline, in the Test
+command) fails when a lab README changes an install step the plan does not
+match.
+
 ## Audience
 
 Kubernetes practitioners who know pods, deployments, services, and namespaces but have never touched AI/ML workloads. Do NOT assume ML knowledge.
