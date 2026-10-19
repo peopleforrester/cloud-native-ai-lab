@@ -11,7 +11,7 @@ It sits at the ingress layer, in front of inference backends like KServe and llm
 
 ## Current status
 - **CNCF status:** Not a standalone CNCF project, developed under the Kubernetes Gateway API SIG
-- **Latest version:** v1.6.1 (InferencePool API is v1, GA)
+- **Latest version:** v1.6.2 (InferencePool API is v1, GA)
 - **Key CRDs:** InferencePool (`inference.networking.k8s.io/v1`, GA) and InferencePoolImport (`inference.networking.x-k8s.io/v1alpha1`, new in v1.6.0).
 - **Moved out:** `InferenceObjective` replaced `InferenceModel` in v1.0.0 but was never promoted to the GA group. v1.6.0 removed it, along with `InferenceModelRewrite` and `EndpointPickerConfig`, and it now ships from llm-d-router as `llm-d.ai/v1alpha2`.
 
@@ -22,4 +22,4 @@ It sits at the ingress layer, in front of inference backends like KServe and llm
 - Related lab: [labs/05-gateway-routing](../../labs/05-gateway-routing/)
 
 ## Last verified
-July 2026. All facts checked against official sources.
+July 2026. All facts checked against official sources. Latest version re-checked against the v1.6.2 release on 2026-10-19.

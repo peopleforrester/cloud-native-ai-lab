@@ -273,3 +273,33 @@ under `inference.networking.k8s.io/v1`: `targetPortNumber` instead of
 map where v1 expects `selector.matchLabels`. With the CRDs installed, the apply
 now fails strict field validation instead of `no matches for kind`. That fix
 changes Step 4's prose, so it is filed as a follow-up.
+
+## 2026-10-19T18:10:40Z · 3.3 · question 484: GAIE one-pager names v1.6.2, Last verified stays July 2026 (#19)
+
+**Question 484.** Approve refreshing `docs/projects/gateway-api-inference.md`
+to GAIE v1.6.2? The proposed change set line 14 to v1.6.2 and restamped Last
+verified as "October 2026. All facts checked against official sources."
+
+**Answer:** Apply the version line only and leave Last verified at July 2026.
+
+**Decided by:** hecaton's research under Michael's standing rules, not by
+Michael.
+
+**Why.** Under the rule in commit dec429d, a one-pager gets a new month only when
+the whole page was re-checked in that cycle. This run checked only the version,
+so an October stamp would claim more than was checked, including the GKE
+30%/60% figures and the list of compatible gateways. Commit ca35133 updated this
+same file's version and left the date alone, and the question 259 entry did the
+same for kagent.md.
+
+**What it changes.** "Latest version" now reads v1.6.2. That matches lab 05's
+pinned `v1-manifests.yaml` and PROJECT_STATE.md. Last verified stays at July
+2026 and gains the sentence "Latest version re-checked against the v1.6.2
+release on 2026-10-19.", worded like kagent.md's. Nothing else on the page
+changes. v1.6.2 is a patch release (a conformance image reference fix plus the
+lwepp fixes) with no CRD or API change, so the Key CRDs and Moved out bullets
+still hold. The v1.6.1 at decisions.md:62 is a dated record and stays.
+
+**How it was checked.** On 2026-10-19, `gh release list -R
+kubernetes-sigs/gateway-api-inference-extension` showed v1.6.2 as Latest,
+published 2026-09-17T20:18:39Z. Its release notes were read in full.
