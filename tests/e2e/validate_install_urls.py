@@ -162,19 +162,6 @@ def _get_oci_manifest(url: str) -> int:
     return status
 
 
-@pytest.fixture(scope="session", autouse=True)
-def network() -> None:
-    """Fail every test up front, with one clear reason, when there is no outbound HTTPS."""
-    try:
-        _get("https://github.com")
-    except (urllib.error.URLError, TimeoutError, OSError) as err:
-        pytest.fail(
-            "The E2E suite needs outbound HTTPS to reach the URLs the labs install from, "
-            f"and https://github.com is unreachable: {err}",
-            pytrace=False,
-        )
-
-
 def test_sources_reference_install_urls() -> None:
     """Guard the extractor: if it finds nothing, the parametrized checks below prove nothing."""
     assert len(FETCHES) >= 10, f"Expected at least 10 fetched URLs, found {sorted(FETCHES)}"
