@@ -220,3 +220,51 @@ parsing and the single retry offline, so the Test command catches regressions
 there without the network.
 
 This closes the "Still open" note in the #12 entry above.
+
+## 2026-10-18T22:45:56Z · 3.3 · E2E: lab 06 manifests checked against the pinned chart's CRDs (#17)
+
+#12 validated lab 06's Agent, ModelConfig and MCPServer once, by hand, against
+the CRD schemas in the published `kagent-crds` 0.10.3 chart. The offline
+`TestKagentLab` gate only compares apiVersions, top-level spec fields and
+references with a hand-copied list. `tests/e2e/validate_kagent_crds.py` now
+repeats the #12 check on every E2E run. It reads the chart and version from lab
+06's `helm install` line, pulls the chart the way `helm pull` does (anonymous
+token, then manifest, then the chart layer, with the layer's sha256 checked), and
+validates each lab 06 custom resource against the CRD that a default install
+applies. A pin bump is then checked against the new chart's real schema.
+
+**Base.** Built on the E2E suite from #10 with the #16 token fix, both now on
+`staging`; the chart pull reuses that module's anonymous-token helpers. The
+`network` fixture moved from `validate_install_urls.py` to
+`tests/e2e/conftest.py` so both E2E modules share it.
+
+**What the validator does** (`tests/e2e/crd_schema.py`). It applies schema
+defaults, then checks types, required fields, enums, patterns, lengths, bounds,
+int32/int64 ranges, list-type uniqueness and `anyOf`. It rejects any field the
+schema does not declare, as `kubectl apply` with strict field validation does.
+It also runs every `x-kubernetes-validations` CEL rule. Transition rules (those
+using `oldSelf`) are skipped because they do not run on create. A schema keyword
+or format the validator does not know fails the test by name, not silently.
+`metadata` is left to the API server, which checks ObjectMeta itself. Subchart
+CRDs count only when the dependency's condition is on in the chart's default
+values. In 0.10.3 that brings in kmcp's MCPServer and leaves out the substrate
+`ate.dev` CRDs. A templated CRD file fails rather than being read unrendered.
+
+The test proves it can fail. Adding an unknown `spec` field to each lab manifest
+must be rejected, and so must the Agent and MCPServer fields lab 06 used before
+#12. A probe also confirmed that the CEL rules, enums and type checks reject
+mutated manifests against the real schema. `tests/validate_e2e_crd_schema.py`
+covers the validator and chart reader offline in the Test command.
+
+**New dev dependency: `cel-python>=0.5.0`** (0.5.0, released 2026-01-31, locked
+2026-10-17). The three lab CRDs carry 38 CEL rules, among them ModelConfig's
+provider-block rules and the Agent's tool-reference rules. Checking them by
+hand, as #12 did, would leave the parts of the schema most likely to change on
+a pin bump unchecked. cel-python is a pure-Python CEL implementation and is
+enough for the rules these CRDs use: `has`, `size`, `all`, `in` and boolean
+logic. It brings in lark, pendulum, jmespath and google-re2. Kubernetes' own
+CEL extension libraries are not in it. A rule that needs one fails with a
+compile error that names the rule, so it is not skipped.
+
+**Still not a cluster.** This is schema validation, not an apply against a live
+API server. The kind-cluster E2E in #13 would cover lab 06 when it lands.

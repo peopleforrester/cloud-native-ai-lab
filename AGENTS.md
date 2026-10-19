@@ -28,7 +28,9 @@ E2E command: `uv sync --dev --locked && uv run pytest tests/e2e`
 The E2E suite lives in `tests/e2e/` and needs outbound HTTPS. It fetches every
 remote install artifact the labs use (`kubectl apply -f` URLs, curl downloads,
 `git clone` targets, `helm repo add` indexes and pinned OCI chart versions) and
-fails when one no longer resolves. `uv run pytest` does not collect it
+fails when one no longer resolves. It also pulls the `kagent-crds` chart lab 06
+pins and validates every lab 06 manifest against that chart's CRD schemas
+(`tests/e2e/validate_kagent_crds.py`). `uv run pytest` does not collect it
 (`norecursedirs` in `pyproject.toml`), so the Test command stays offline. Nothing
 in either suite creates a cluster; behaviour on a live kind cluster is still
 unverified.
