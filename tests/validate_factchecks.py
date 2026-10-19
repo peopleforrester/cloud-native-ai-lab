@@ -345,6 +345,112 @@ class TestLlmdAttribution:
                 )
 
 
+class TestGatewayRoutingLab:
+    """Lab 05 must install every CRD its manifests need, pinned, before applying them.
+
+    The lab once applied its Gateway, HTTPRoute, InferencePool and InferenceObjective
+    manifests with no install step, so each apply failed with `no matches for kind`
+    on a fresh cluster. The three groups come from three projects, each pinned to a
+    release file. llm-d-router v1.0.0 still serves and stores InferenceObjective at
+    llm-d.ai/v1alpha2, whose top-level spec fields are listed below.
+    """
+
+    LAB = Path("labs") / "05-gateway-routing"
+    CRD_INSTALLS: ClassVar[dict[str, str]] = {
+        "gateway.networking.k8s.io": (
+            "https://github.com/kubernetes-sigs/gateway-api/releases/download/"
+            "v1.6.3/standard-install.yaml"
+        ),
+        "inference.networking.k8s.io": (
+            "https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/"
+            "download/v1.6.2/v1-manifests.yaml"
+        ),
+        "llm-d.ai": "https://github.com/llm-d/llm-d-router/releases/download/v1.0.0/manifests.yaml",
+    }
+    OBJECTIVE_SPEC_FIELDS: ClassVar[set[str]] = {"poolRef", "poolRefs", "poolSelector", "priority"}
+
+    def _readme(self, repo_root: Path) -> str:
+        return (repo_root / self.LAB / "README.md").read_text()
+
+    def _manifests(self, repo_root: Path) -> list[tuple[str, dict[str, Any]]]:
+        docs: list[tuple[str, dict[str, Any]]] = []
+        for path in sorted((repo_root / self.LAB / "manifests").glob("*.yaml")):
+            rel = str(path.relative_to(repo_root))
+            docs.extend((rel, doc) for doc in yaml.safe_load_all(path.read_text()) if doc)
+        return docs
+
+    def _command_lines(self, content: str, verb: str) -> list[tuple[int, str]]:
+        return [
+            (offset, line.strip())
+            for offset, line in enumerate(content.splitlines())
+            if line.strip().startswith(f"kubectl {verb} ")
+        ]
+
+    def test_every_manifest_group_has_a_crd_install(self, repo_root: Path) -> None:
+        """Each non-core API group the manifests use maps to a pinned CRD install."""
+        groups = {
+            str(doc["apiVersion"]).split("/")[0]
+            for _, doc in self._manifests(repo_root)
+            if "/" in str(doc.get("apiVersion", ""))
+        }
+        assert groups, "Lab 05 has no manifests with a non-core apiVersion"
+        missing = groups - set(self.CRD_INSTALLS)
+        assert not missing, f"Lab 05 uses groups with no pinned CRD install: {sorted(missing)}"
+
+    def test_readme_installs_crds_before_applying_manifests(self, repo_root: Path) -> None:
+        """Every pinned CRD file is applied before the first `kubectl apply -f manifests/`."""
+        applies = self._command_lines(self._readme(repo_root), "apply")
+        first_manifest = next(
+            (i for i, line in applies if "-f manifests/" in line),
+            None,
+        )
+        assert first_manifest is not None, "Lab 05 never applies its manifests"
+        for group, url in self.CRD_INSTALLS.items():
+            at = [i for i, line in applies if line.endswith(f"-f {url}")]
+            assert at, f"Lab 05 never applies the {group} CRDs from {url}"
+            assert at[0] < first_manifest, (
+                f"Lab 05 applies the {group} CRDs after its first manifest apply"
+            )
+
+    def test_gateway_api_install_is_server_side(self, repo_root: Path) -> None:
+        """The Gateway API install guide applies standard-install.yaml with --server-side."""
+        url = self.CRD_INSTALLS["gateway.networking.k8s.io"]
+        lines = [ln for _, ln in self._command_lines(self._readme(repo_root), "apply") if url in ln]
+        assert lines and all("--server-side" in ln for ln in lines), (
+            f"Lab 05 must apply {url} with --server-side"
+        )
+
+    def test_cleanup_deletes_crds_in_reverse_order(self, repo_root: Path) -> None:
+        """Clean up removes the CRD files after the lab's resources, last-installed first."""
+        content = self._readme(repo_root)
+        cleanup = content[content.index("## Clean up") :]
+        deletes = [line for _, line in self._command_lines(cleanup, "delete")]
+        crd_deletes = [
+            (i, group)
+            for i, line in enumerate(deletes)
+            for group, url in self.CRD_INSTALLS.items()
+            if line.endswith(f"-f {url}")
+        ]
+        order = [group for _, group in crd_deletes]
+        expected = list(reversed(self.CRD_INSTALLS))
+        assert order == expected, f"Clean up deletes CRDs as {order}, expected {expected}"
+        last_resource = max(i for i, line in enumerate(deletes) if "-f manifests/" in line)
+        assert last_resource < crd_deletes[0][0], "Clean up must delete resources before their CRDs"
+
+    def test_objective_spec_fields_exist_in_crd_schema(self, repo_root: Path) -> None:
+        """InferenceObjective uses only spec fields llm-d-router v1.0.0 serves at v1alpha2."""
+        objectives = [
+            (rel, doc)
+            for rel, doc in self._manifests(repo_root)
+            if doc.get("kind") == "InferenceObjective"
+        ]
+        assert objectives, "Lab 05 has no InferenceObjective manifest"
+        for rel, doc in objectives:
+            assert doc.get("apiVersion") == "llm-d.ai/v1alpha2", f"{rel}: {doc.get('apiVersion')}"
+            unknown = set(doc.get("spec", {})) - self.OBJECTIVE_SPEC_FIELDS
+            assert not unknown, f"{rel}: unknown InferenceObjective spec fields {sorted(unknown)}"
+
+
 class TestKagentLab:
     """Lab 06 must install and use the kagent CRDs as kagent v0.10.3 ships them.
 

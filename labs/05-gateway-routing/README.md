@@ -93,7 +93,40 @@ Client Request (with model name in body)
 Without this extension, the gateway would round-robin across all pods, even pods
 that do not have the requested model loaded. With it, routing is intelligent.
 
-### Step 2: Create the namespace and Gateway
+### Step 2: Install the CRDs
+
+A fresh kind cluster has no Gateway, InferencePool or InferenceObjective kinds.
+Each one is a CustomResourceDefinition (CRD), and the three come from three
+different projects. Without them, every `kubectl apply` in this lab fails with
+`no matches for kind`. Install each project's CRD file, pinned to a release:
+
+| File | Project and release | Kinds this lab uses |
+|---|---|---|
+| `standard-install.yaml` | Gateway API v1.6.3 | Gateway, HTTPRoute (`gateway.networking.k8s.io/v1`) |
+| `v1-manifests.yaml` | Gateway API Inference Extension v1.6.2 | InferencePool (`inference.networking.k8s.io/v1`) |
+| `manifests.yaml` | llm-d-router v1.0.0 | InferenceObjective (`llm-d.ai/v1alpha2`) |
+
+```bash
+kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.3/standard-install.yaml
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/download/v1.6.2/v1-manifests.yaml
+kubectl apply -f https://github.com/llm-d/llm-d-router/releases/download/v1.0.0/manifests.yaml
+```
+
+The Gateway API install guide applies its file with `--server-side`, and this
+lab does the same. These files install only API definitions, plus a validating
+admission policy from the Gateway API. They do not install a gateway
+controller or an endpoint picker, so nothing will route traffic yet.
+
+Check that the four CRDs this lab uses are there:
+
+```bash
+kubectl get crd gateways.gateway.networking.k8s.io \
+  httproutes.gateway.networking.k8s.io \
+  inferencepools.inference.networking.k8s.io \
+  inferenceobjectives.llm-d.ai
+```
+
+### Step 3: Create the namespace and Gateway
 
 Open `manifests/gateway.yaml`. This manifest creates the `inference-demo`
 namespace, a standard Gateway API Gateway, and an HTTPRoute that references the
@@ -107,7 +140,7 @@ objective resources:
 kubectl apply -f manifests/gateway.yaml
 ```
 
-### Step 3: Examine the InferencePool manifest
+### Step 4: Examine the InferencePool manifest
 
 Open `manifests/inference-pool.yaml` and read the comments. The key fields are:
 
@@ -130,7 +163,7 @@ kubectl get inferencepool -n inference-demo
 kubectl describe inferencepool llm-pool -n inference-demo
 ```
 
-### Step 4: Examine the InferenceObjective manifest
+### Step 5: Examine the InferenceObjective manifest
 
 > **Important:** older tutorials and blog posts are unreliable on this CRD.
 > `InferenceModel` was replaced by `InferenceObjective` in GAIE v1.0.0, and
@@ -160,6 +193,11 @@ Apply the manifest:
 kubectl apply -f manifests/inference-objective.yaml
 ```
 
+llm-d-router v1.0.0 also serves a newer `llm-d.ai/v1` version of this kind
+and marks `v1alpha2` as deprecated, so `kubectl` prints
+`Warning: llm-d.ai/v1alpha2 InferenceObjective is deprecated; use llm-d.ai/v1`.
+The resource is still created. This lab stays on `v1alpha2` for now.
+
 Inspect the resource:
 
 ```bash
@@ -167,7 +205,7 @@ kubectl get inferenceobjective -n inference-demo
 kubectl describe inferenceobjective coding-model -n inference-demo
 ```
 
-### Step 5: Understand routing decisions
+### Step 6: Understand routing decisions
 
 When a client sends a request like:
 
@@ -253,6 +291,16 @@ kubectl delete -f manifests/gateway.yaml
 kubectl delete -f manifests/inference-objective.yaml
 kubectl delete -f manifests/inference-pool.yaml
 kubectl delete namespace inference-demo
+```
+
+Then remove the CRDs, in the reverse order you installed them. Skip this if
+anything else on your cluster uses the Gateway API or these inference kinds:
+deleting a CRD deletes every resource of that kind in every namespace.
+
+```bash
+kubectl delete -f https://github.com/llm-d/llm-d-router/releases/download/v1.0.0/manifests.yaml
+kubectl delete -f https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/download/v1.6.2/v1-manifests.yaml
+kubectl delete -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.3/standard-install.yaml
 ```
 
 ## Next step

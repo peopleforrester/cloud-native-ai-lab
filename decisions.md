@@ -220,3 +220,56 @@ parsing and the single retry offline, so the Test command catches regressions
 there without the network.
 
 This closes the "Still open" note in the #12 entry above.
+
+## 2026-10-19T10:25:55Z · 3.3 · question 266: lab 05 installs its CRDs, llm-d-router pinned at v1.0.0 (#15)
+
+**Question 266.** Lab 05 applied Gateway, HTTPRoute, InferencePool and
+InferenceObjective manifests with no step installing their CRDs, so on a fresh
+kind cluster every apply failed with `no matches for kind`. Approve pinned CRD
+installs, placed before `kubectl apply -f manifests/gateway.yaml`: Gateway API
+v1.6.3 `standard-install.yaml` (server-side), Gateway API Inference Extension
+v1.6.2 `v1-manifests.yaml`, and llm-d-router for InferenceObjective. Which
+llm-d-router: v0.11.0, which serves only `llm-d.ai/v1alpha2`, or v1.0.0
+(2026-10-16), which still stores `v1alpha2` but also serves a new `llm-d.ai/v1`
+with `poolRefs`/`poolSelector` in place of `poolRef` and deprecates `v1alpha2`?
+
+**Answer:** Pin llm-d-router v1.0.0 manifests.yaml and keep the manifest at
+llm-d.ai/v1alpha2 (still served there). Moving the lab to llm-d.ai/v1 is a
+separate change, and it also changes AGENTS.md fact-check #3. (default)
+
+**Decided by:** the coordinator under Michael's standing rules, not by Michael.
+
+**What it changes.** Lab 05 gains a new Step 2, "Install the CRDs", that applies
+the three pinned release files, and the later steps move down one number. Step 5
+tells the learner to expect the `v1alpha2` deprecation warning that llm-d-router
+v1.0.0 prints. Clean up deletes the three files in reverse order after the lab's
+resources, with a warning that deleting a CRD deletes every resource of that
+kind. `manifests/inference-objective.yaml` and AGENTS.md fact-check #3 are
+unchanged. The E2E install-URL suite collects the three URLs from the README on
+its own. `tests/e2e/lab_plan.py` and `tests/validate_e2e_plan.py` from #13 are
+not on this base, so nothing else had to change.
+
+**How it was checked.** All three release files were downloaded on 2026-10-19,
+and their SHA-256 matched the digests GitHub publishes for the release assets.
+Their CRDs were then parsed. Gateway API v1.6.3 serves Gateway and HTTPRoute at
+`gateway.networking.k8s.io/v1`. GAIE v1.6.2 `v1-manifests.yaml` holds only the
+InferencePool CRD, at `inference.networking.k8s.io/v1`. llm-d-router v1.0.0
+`manifests.yaml` holds InferenceObjective (served at `v1` and `v1alpha2`,
+stored at `v1alpha2`) and one other llm-d.ai CRD the lab does not use. Its
+`v1alpha2` schema accepts
+the lab's `poolRef` plus `priority`. The Gateway API v1.6.3 getting-started
+guide applies `standard-install.yaml` with `--server-side`. No kind cluster was
+used.
+
+**Gate added:** `TestGatewayRoutingLab` in `tests/validate_factchecks.py`. It
+checks that every API group the manifests use maps to a pinned install, that
+each install comes before the first manifest apply, that the Gateway API apply
+is server-side, that clean up removes the CRDs last and in reverse order, and
+that the InferenceObjective spec fields exist in the `v1alpha2` schema.
+
+**Still open:** `manifests/inference-pool.yaml` uses `v1alpha2` field names
+under `inference.networking.k8s.io/v1`: `targetPortNumber` instead of
+`targetPorts`, `extensionRef` instead of `endpointPickerRef`, and a bare label
+map where v1 expects `selector.matchLabels`. With the CRDs installed, the apply
+now fails strict field validation instead of `no matches for kind`. That fix
+changes Step 4's prose, so it is filed as a follow-up.

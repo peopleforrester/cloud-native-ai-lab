@@ -68,7 +68,9 @@ roughly seven, three and nine week intervals.
 | kagent tools image (lab 06) | 0.3.0 |
 | kind, kindest/node (lab 00) | v0.33.0, v1.37.0 (digest-pinned) |
 | MCP spec | 2026-07-28 |
-| Gateway API Inference Extension | v1.6.1 |
+| Gateway API Inference Extension (lab 05 CRDs) | v1.6.2 |
+| Gateway API (lab 05 CRDs) | v1.6.3 |
+| llm-d-router (lab 05 CRDs) | v1.0.0 |
 
 ## Work completed since the July refresh
 
