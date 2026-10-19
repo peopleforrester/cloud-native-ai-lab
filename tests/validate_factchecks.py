@@ -352,7 +352,9 @@ class TestGatewayRoutingLab:
     manifests with no install step, so each apply failed with `no matches for kind`
     on a fresh cluster. The three groups come from three projects, each pinned to a
     release file. llm-d-router v1.0.0 still serves and stores InferenceObjective at
-    llm-d.ai/v1alpha2, whose top-level spec fields are listed below.
+    llm-d.ai/v1alpha2, whose top-level spec fields are listed below. GAIE v1.6.2
+    serves InferencePool only at inference.networking.k8s.io/v1; its spec and
+    endpointPickerRef fields are listed below too.
     """
 
     LAB = Path("labs") / "05-gateway-routing"
@@ -368,6 +370,13 @@ class TestGatewayRoutingLab:
         "llm-d.ai": "https://github.com/llm-d/llm-d-router/releases/download/v1.0.0/manifests.yaml",
     }
     OBJECTIVE_SPEC_FIELDS: ClassVar[set[str]] = {"poolRef", "poolRefs", "poolSelector", "priority"}
+    POOL_SPEC_FIELDS: ClassVar[set[str]] = {
+        "appProtocol",
+        "endpointPickerRef",
+        "selector",
+        "targetPorts",
+    }
+    PICKER_REF_FIELDS: ClassVar[set[str]] = {"failureMode", "group", "kind", "name", "port"}
 
     def _readme(self, repo_root: Path) -> str:
         return (repo_root / self.LAB / "README.md").read_text()
@@ -449,6 +458,64 @@ class TestGatewayRoutingLab:
             assert doc.get("apiVersion") == "llm-d.ai/v1alpha2", f"{rel}: {doc.get('apiVersion')}"
             unknown = set(doc.get("spec", {})) - self.OBJECTIVE_SPEC_FIELDS
             assert not unknown, f"{rel}: unknown InferenceObjective spec fields {sorted(unknown)}"
+
+    def test_pool_spec_fields_exist_in_crd_schema(self, repo_root: Path) -> None:
+        """InferencePool matches the v1 schema GAIE v1.6.2 serves, not the v1alpha2 one.
+
+        The lab once used targetPortNumber, extensionRef, a bare selector map and an
+        integer picker port under v1, which strict field validation rejects.
+        """
+        pools = [
+            (rel, doc)
+            for rel, doc in self._manifests(repo_root)
+            if doc.get("kind") == "InferencePool"
+        ]
+        assert pools, "Lab 05 has no InferencePool manifest"
+        for rel, doc in pools:
+            assert doc.get("apiVersion") == "inference.networking.k8s.io/v1", rel
+            spec = doc.get("spec", {})
+            unknown = set(spec) - self.POOL_SPEC_FIELDS
+            assert not unknown, f"{rel}: unknown InferencePool spec fields {sorted(unknown)}"
+
+            selector = spec.get("selector")
+            assert isinstance(selector, dict) and set(selector) <= {"matchLabels"}, (
+                f"{rel}: v1 spec.selector holds only matchLabels, got {selector}"
+            )
+            assert isinstance(selector.get("matchLabels"), dict) and selector["matchLabels"], (
+                f"{rel}: spec.selector.matchLabels is required and must not be empty"
+            )
+
+            ports = spec.get("targetPorts")
+            assert isinstance(ports, list) and 1 <= len(ports) <= 8, (
+                f"{rel}: spec.targetPorts must list 1 to 8 ports, got {ports}"
+            )
+            for port in ports:
+                assert isinstance(port, dict) and set(port) == {"number"}, f"{rel}: {port}"
+                assert isinstance(port["number"], int), f"{rel}: {port}"
+            numbers = [port["number"] for port in ports]
+            assert len(numbers) == len(set(numbers)), f"{rel}: duplicate targetPorts {numbers}"
+
+            picker = spec.get("endpointPickerRef")
+            if picker is None:
+                continue
+            unknown = set(picker) - self.PICKER_REF_FIELDS
+            assert not unknown, f"{rel}: unknown endpointPickerRef fields {sorted(unknown)}"
+            assert picker.get("name"), f"{rel}: endpointPickerRef.name is required"
+            assert picker.get("failureMode", "FailClose") in {"FailOpen", "FailClose"}, rel
+            if picker.get("kind", "Service") == "Service":
+                port = picker.get("port")
+                assert isinstance(port, dict) and isinstance(port.get("number"), int), (
+                    f"{rel}: endpointPickerRef.port must be {{number: <int>}} for a Service"
+                )
+
+    def test_no_v1alpha2_pool_field_names(self, repo_root: Path) -> None:
+        """Neither the README nor the manifests teach the retired v1alpha2 pool fields."""
+        lab = repo_root / self.LAB
+        for path in [lab / "README.md", *sorted((lab / "manifests").glob("*.yaml"))]:
+            found = [
+                name for name in ("targetPortNumber", "extensionRef") if name in path.read_text()
+            ]
+            assert not found, f"{path.relative_to(repo_root)} still names {found}"
 
 
 class TestKagentLab:

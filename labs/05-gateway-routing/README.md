@@ -144,10 +144,14 @@ kubectl apply -f manifests/gateway.yaml
 
 Open `manifests/inference-pool.yaml` and read the comments. The key fields are:
 
-- **selector**: Which pods belong to this pool (label-based, like a Service)
-- **targetPortNumber**: The port where the inference server listens
-- **extensionRef**: Points to the endpoint-picker service that makes intelligent
-  routing decisions
+- **selector.matchLabels**: Which pods belong to this pool (label-based, like a
+  Service)
+- **targetPorts**: The ports where the inference server listens, as a list of
+  `number` entries
+- **endpointPickerRef**: Points to the endpoint-picker service that makes
+  intelligent routing decisions. Its `failureMode` says what happens when the
+  picker is unreachable: `FailClose` (the default) drops the request, and
+  `FailOpen` lets the gateway pick an endpoint itself.
 
 Apply the manifest to see the CRD in action (the resource will be created but
 will not route traffic without real backends):

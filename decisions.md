@@ -281,6 +281,18 @@ to GAIE v1.6.2? The proposed change set line 14 to v1.6.2 and restamped Last
 verified as "October 2026. All facts checked against official sources."
 
 **Answer:** Apply the version line only and leave Last verified at July 2026.
+## 2026-10-19T20:55:28Z · 3.3 · question 483: lab 05 InferencePool moves to the v1 schema (#18)
+
+**Question 483.** Approve rewriting
+`labs/05-gateway-routing/manifests/inference-pool.yaml` and README Step 4 to the
+InferencePool v1 schema? The manifest declared
+`inference.networking.k8s.io/v1` but used `v1alpha2` fields, so the apply failed
+strict field validation once #15 installed the CRDs. There were four errors: a
+bare label map as `selector`, `targetPortNumber`, `extensionRef`, and the picker
+port written as a plain integer.
+
+**Answer:** B: As A, but write group: "", kind: Service and failureMode:
+FailClose out explicitly so learners can see every field.
 
 **Decided by:** hecaton's research under Michael's standing rules, not by
 Michael.
@@ -303,3 +315,41 @@ still hold. The v1.6.1 at decisions.md:62 is a dated record and stays.
 **How it was checked.** On 2026-10-19, `gh release list -R
 kubernetes-sigs/gateway-api-inference-extension` showed v1.6.2 as Latest,
 published 2026-09-17T20:18:39Z. Its release notes were read in full.
+**What it changes.**
+
+- `manifests/inference-pool.yaml` uses `selector.matchLabels {app:
+  vllm-server}` and `targetPorts: [{number: 8000}]`. It also has an
+  `endpointPickerRef` with `group: ""`, `kind: Service`, `name:
+  llm-endpoint-picker`, `port: {number: 9002}` and `failureMode: FailClose`.
+  group, kind and failureMode are written out at their defaults, as
+  `inference-objective.yaml` already does for `poolRef`. The failureMode
+  comment follows upstream's wording in `api/v1/inferencepool_types.go`:
+  FailClose drops the request when the picker is unreachable, and FailOpen
+  lets the gateway pick an endpoint itself.
+- README Step 4's bullets now name `selector.matchLabels`, `targetPorts` and
+  `endpointPickerRef`, with failureMode explained.
+
+**How it was checked.** GAIE v1.6.2 `v1-manifests.yaml` was downloaded again
+on 2026-10-19 (sha256
+`f410dfca474608c02903087b47f1ac081706dfb6dfe7f83d00a7cc7e00c4ad0d`, the same
+digest question 483 cites). The new manifest was validated against its `v1`
+OpenAPI schema with unknown fields rejected, plus the CEL rule that requires
+`port` when `kind` is Service. It passes. The old manifest fails five ways:
+`targetPorts` and `selector.matchLabels` are missing, and `selector.app`,
+`targetPortNumber` and `extensionRef` are unknown fields. No kind cluster was
+used.
+
+**Do not suggest:** `targetPortNumber`, `extensionRef`, a bare `selector` map, or
+an integer `endpointPickerRef.port` under `inference.networking.k8s.io/v1`.
+Those are `v1alpha2` shapes.
+
+**Gate added:** two tests in `TestGatewayRoutingLab`.
+`test_pool_spec_fields_exist_in_crd_schema` checks the apiVersion, the
+top-level spec fields, the required non-empty `selector.matchLabels`,
+`targetPorts` (1 to 8 unique `{number}` entries), and the `endpointPickerRef`
+fields. Those are: `name` present, `failureMode` in the enum, and a `{number}`
+port when kind is Service. `test_no_v1alpha2_pool_field_names` keeps
+`targetPortNumber` and `extensionRef` out of the lab's README and manifests.
+Both tests fail against the old lab 05.
+
+This closes the "Still open" note in the question 266 entry above.
