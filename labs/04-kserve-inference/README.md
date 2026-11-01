@@ -77,12 +77,32 @@ kubectl wait --for=condition=Available deployment --all \
 ```
 
 Now install KServe. This lab is pinned to v0.20.0 (see the
-[KServe one-pager](../../docs/projects/kserve.md)). The recommended install
-uses `kubectl apply --server-side` because the CRD annotations exceed the
-client-side `kubectl apply` size limit:
+[KServe one-pager](../../docs/projects/kserve.md)). The order of these steps
+matters:
+
+1. Create the `kserve` namespace from `manifests/kserve-namespace.yaml`. Many of
+   the objects in `kserve.yaml` belong to it, but that file does not create it.
+2. Apply `kserve-crds.yaml` by itself, then wait for the `ClusterStorageContainer`
+   CRD. `kserve.yaml` also creates a default `ClusterStorageContainer`, and that
+   fails with `no matches for kind` until its CRD exists.
+3. Apply `kserve.yaml`. It installs the KServe and LLMInferenceService
+   controllers and their webhooks. It also includes the CRDs again, which is
+   harmless.
+4. Wait for both controllers. The webhooks that check
+   `kserve-cluster-resources.yaml` refuse connections until their controllers
+   are running.
+5. Apply `kserve-cluster-resources.yaml`, which installs the built-in serving
+   runtimes.
+
+The recommended install uses `kubectl apply --server-side` because the CRD
+annotations exceed the client-side `kubectl apply` size limit:
 
 ```bash
+kubectl apply -f manifests/kserve-namespace.yaml
+kubectl apply --server-side -f https://github.com/kserve/kserve/releases/download/v0.20.0/kserve-crds.yaml
+kubectl wait --for=condition=Established crd/clusterstoragecontainers.serving.kserve.io --timeout=120s
 kubectl apply --server-side -f https://github.com/kserve/kserve/releases/download/v0.20.0/kserve.yaml
+kubectl wait --for=condition=Available deployment/kserve-controller-manager deployment/llmisvc-controller-manager -n kserve --timeout=300s
 kubectl apply --server-side -f https://github.com/kserve/kserve/releases/download/v0.20.0/kserve-cluster-resources.yaml
 ```
 
@@ -94,13 +114,6 @@ kubectl apply --server-side -f https://github.com/kserve/kserve/releases/downloa
 > kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.14.1/kserve.yaml
 > kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.14.1/kserve-cluster-resources.yaml
 > ```
-
-Wait for KServe to be ready:
-
-```bash
-kubectl wait --for=condition=Available deployment/kserve-controller-manager \
-  -n kserve --timeout=120s
-```
 
 ### Step 2: Create a namespace for inference workloads
 
@@ -264,6 +277,7 @@ kubectl delete namespace inference
 # Remove KServe (use the same version you installed; v0.20.0 shown here)
 kubectl delete -f https://github.com/kserve/kserve/releases/download/v0.20.0/kserve-cluster-resources.yaml
 kubectl delete -f https://github.com/kserve/kserve/releases/download/v0.20.0/kserve.yaml
+kubectl delete namespace kserve
 
 # Remove Knative networking (Kourier)
 kubectl delete -f https://github.com/knative-extensions/net-kourier/releases/download/knative-v1.23.0/kourier.yaml

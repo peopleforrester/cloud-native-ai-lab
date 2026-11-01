@@ -1,0 +1,6 @@
+# ABOUTME: Namespace that the KServe controller and its webhooks run in; kserve.yaml does not create it.
+# ABOUTME: Applied in Step 1 before kserve.yaml, because most of that file's objects are namespaced to it.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kserve

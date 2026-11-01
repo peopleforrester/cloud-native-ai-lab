@@ -100,17 +100,26 @@ LABS: tuple[Lab, ...] = (
                 "kubectl wait --for=condition=Available deployment --all -n knative-serving "
                 "--timeout=120s"
             ),
+            "kubectl apply -f manifests/kserve-namespace.yaml",
+            (
+                "kubectl apply --server-side -f "
+                "https://github.com/kserve/kserve/releases/download/v0.20.0/kserve-crds.yaml"
+            ),
+            (
+                "kubectl wait --for=condition=Established crd/clusterstoragecontainers.serving.kserve.io "
+                "--timeout=120s"
+            ),
             (
                 "kubectl apply --server-side -f "
                 "https://github.com/kserve/kserve/releases/download/v0.20.0/kserve.yaml"
             ),
             (
-                "kubectl apply --server-side -f "
-                "https://github.com/kserve/kserve/releases/download/v0.20.0/kserve-cluster-resources.yaml"
+                "kubectl wait --for=condition=Available deployment/kserve-controller-manager "
+                "deployment/llmisvc-controller-manager -n kserve --timeout=300s"
             ),
             (
-                "kubectl wait --for=condition=Available deployment/kserve-controller-manager "
-                "-n kserve --timeout=120s"
+                "kubectl apply --server-side -f "
+                "https://github.com/kserve/kserve/releases/download/v0.20.0/kserve-cluster-resources.yaml"
             ),
         ),
     ),

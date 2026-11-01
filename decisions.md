@@ -479,3 +479,38 @@ fails, and any other error fails at once.
 **Fails loudly.** Without kind, kubectl or helm on PATH, all 8 tests error with
 `Missing: kind, kubectl, helm` and the command exits 1. The same happens when
 `docker info` fails, or when Helm is 4.0-4.2.
+
+## 2026-11-01T08:03:05Z · 3.3 · question 1019: lab 04 keeps the kubectl install and adds the missing steps (#20)
+
+**Question:** Should lab 04 keep installing KServe v0.20.0 with kubectl, plus
+the missing steps, or switch to KServe's Helm charts? Lab 04 is
+`labs/04-kserve-inference`, and the question came from issue #20 in this repo,
+which the by-hand kind-cluster check from #13 surfaced.
+
+**Answer:** Keep kubectl, add the missing steps.
+
+**Decided by:** hecaton's research under Michael's standing rules, not by Michael.
+
+**Basis:** this repo's own `decisions.md` entry of 2026-10-17T16:33:34Z
+(question 259), where lab 06's switch to Helm was decided by research under the
+same standing rules, not by Michael. And KServe's serverless install guide
+(fetched 2026-11-01), which lists the kubectl route and the Helm route without
+marking either as preferred. The kubectl route is the only one tested on a live
+kind cluster. It needs no third chart, and it keeps the commands the guide shows.
+
+**What it changes:**
+- Lab 04 Step 1 runs, in order: `kubectl apply -f manifests/kserve-namespace.yaml`
+  (a new manifest for the `kserve` namespace, which `kserve.yaml` does not
+  create), `kubectl apply --server-side` of `kserve-crds.yaml`, a wait for the
+  `ClusterStorageContainer` CRD to be established, `kubectl apply --server-side`
+  of `kserve.yaml`, a wait for both `kserve-controller-manager` and
+  `llmisvc-controller-manager`, and then `kubectl apply --server-side` of
+  `kserve-cluster-resources.yaml`. The namespace is a manifest rather than
+  `kubectl create namespace`, because `tests/validate_factchecks.py` forbids the
+  imperative form in lab READMEs.
+- The lab 04 cleanup section also deletes the `kserve` namespace.
+- `tests/cluster/lab_plan.py` lab 04's install tuple matches those commands, so
+  `tests/validate_cluster_plan.py` passes against the README.
+- The older-kubectl v0.14.1 note is unchanged. Its `kserve.yaml` has a Namespace
+  object and no `ClusterStorageContainer`, so it does not hit these errors.
+- The Helm-chart route is not taken. It stays an option for a later ruling.
