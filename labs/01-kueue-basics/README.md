@@ -124,8 +124,14 @@ kubectl apply -f manifests/local-queue-b.yaml
 Submit a job to team-a's queue:
 
 ```bash
-kubectl apply -f manifests/sample-job.yaml -n team-a-ns
+kubectl create -f manifests/sample-job.yaml -n team-a-ns
 ```
+
+The job manifests in this lab set `metadata.generateName` instead of a fixed
+`name`, so each submission gets a new name such as `sample-job-x7k2p`. That
+lets you submit the same file more than once. `kubectl apply` needs a fixed
+name and refuses these files with `cannot use generate name with apply`, so
+jobs are submitted with `kubectl create`.
 
 Watch the job get admitted:
 
