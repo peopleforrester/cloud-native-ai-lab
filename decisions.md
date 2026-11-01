@@ -400,3 +400,82 @@ compile error that names the rule, so it is not skipped.
 
 **Still not a cluster.** This is schema validation, not an apply against a live
 API server. The kind-cluster E2E in #13 would cover lab 06 when it lands.
+## 2026-11-01T07:36:05Z · 3.3 · Kind-cluster check: the labs run on a live cluster, by hand for now (#13)
+
+The labs had never been run on a live kind cluster. `tests/cluster/kind_cluster.py`
+now does that. It creates a cluster named `cnai-lab-check` from
+`labs/00-setup/kind-cluster.yaml`, with its own kubeconfig and Helm home, and
+checks the three nodes and their zone labels. It then works through labs 00-06
+in order: each lab's install commands at their pinned versions, then every file
+in its `manifests/`, and finally deletes the cluster. Run it with `uv run pytest
+tests/cluster/kind_cluster.py`. The install plan in `tests/cluster/lab_plan.py`
+copies the labs' own commands. `tests/validate_cluster_plan.py` runs offline in
+the Test command and fails when a README pin moves, a new install step is not in
+the plan, a manifest is never applied, or a `generateName` manifest is applied.
+This is draft 2506 (`agent/13-2506`) rebuilt on staging after #10, #16 and #17
+landed, moved out of `tests/e2e/`. `pyproject.toml` is unchanged:
+`kind_cluster.py` is not named `validate_*` or `test_*`, so `uv run pytest`
+never collects it, and naming the file collects it.
+
+**Why it is by hand and not in the `E2E command:`.** The coordinator asked for
+this on #13, following the precedent from task-management-strategic-portal#7: a
+suite the heavy gate cannot run becomes a documented by-hand check. Since then,
+hecaton#352 put kind 0.33.0, kubectl, helm and rootless podman on the run
+hosts, and this run used them. The gate still cannot keep this check green. Its
+`helm` is v4.2.1, which hangs in lab 00. Lab 04 also fails on every run (see
+below). Adding the check now would turn the E2E command red, and that would hold
+up staging's promotion to main for every change in this repo. Once lab 04 is
+fixed and the gate's Helm is 4.3 or later (or 3.x), the check can join the E2E
+command. That move is filed as a follow-up.
+
+**Live results on 2026-11-01** (kind 0.33.0 with podman, kubectl 1.36.2, node
+image kindest/node v1.37.0). Four runs:
+
+- Run 1, with the host's Helm 4.2.1: lab 00's `helm upgrade --install
+  cert-manager ... --wait --timeout 120s` never returned and was killed at 900s.
+  A `--debug` rerun showed why. Once the pods were Ready, Helm waited on
+  deleting the `cert-manager-startupapicheck` hook Job before creating it, and
+  that wait ignored its 2m timeout. Helm 3.22.1 and 4.3.1 (both downloaded with
+  checksums verified) finish the same install in about 90 seconds, as does
+  4.2.1 with `--wait=legacy`. The labs ask for Helm 3.x (README prerequisites,
+  `get-helm-3` in lab 00), so lab 00 is unchanged. The check now refuses any
+  Helm 4 release older than 4.3 up front and names the reason. Only 4.2.1 was
+  observed to hang; earlier 4.x releases were not tried.
+- Run 2, with Helm 4.3.1 first on PATH and the lab 01 fix below: lab 03's
+  JobSet applies were refused by a webhook that was not yet answering. That led
+  to the webhook wait below.
+- Runs 3 and 4, with that wait: labs 00, 01, 02, 03, 05 and 06 install and apply
+  cleanly, in 3.5 and 4.5 minutes. Lab 04 fails on every run.
+
+**Lab 01 bug, fixed.** Step 5 told learners to `kubectl apply -f
+manifests/sample-job.yaml`. That Job sets `generateName`, and `kubectl apply`
+refuses it with `cannot use generate name with apply`. The step now uses
+`kubectl create`, as `sample-job-b.yaml` and `priority-job.yaml` already did,
+and explains why. `test_generate_name_manifests_are_created` fails on the old
+README.
+
+**Lab 04 bug, not fixed here.** KServe v0.20.0's `kserve.yaml` does not create
+the `kserve` namespace that its 24 namespaced objects need. It also creates the
+default ClusterStorageContainer in the same file as that kind's CRD, so the
+first apply fails with `no matches for kind`. v0.21.0's file has the same
+shape, and KServe's own install guide shows the same two commands the lab does.
+The lab also applies `kserve-cluster-resources.yaml` before waiting for the
+controller, and its webhooks refuse that. A tested sequence works on the live
+cluster, and the InferenceService then applies: `kubectl create namespace
+kserve`, apply `kserve.yaml` (applying it again once the CRDs exist), wait for
+`kserve-controller-manager`, then apply the cluster resources. The other route
+is KServe's Helm charts. Choosing between them changes the lab for learners, so
+it is filed as a follow-up for a ruling, not made here.
+
+**The one wait the check adds.** After a lab's own `kubectl wait
+--for=condition=Available`, the Kueue and JobSet webhooks sometimes refuse
+connections for about a second. On four fresh JobSet installs the first apply
+was refused twice, and went through 1.2 seconds later. A learner never sees
+that gap. For manifest applies only, the check reruns a command whose only error
+is a webhook `connection refused`, for up to 60 seconds; a refused call creates
+nothing. Install steps never get this wait, so lab 04's real ordering bug still
+fails, and any other error fails at once.
+
+**Fails loudly.** Without kind, kubectl or helm on PATH, all 8 tests error with
+`Missing: kind, kubectl, helm` and the command exits 1. The same happens when
+`docker info` fails, or when Helm is 4.0-4.2.
