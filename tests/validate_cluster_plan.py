@@ -1,11 +1,18 @@
 # ABOUTME: Offline check that the kind-cluster plan in tests/cluster/lab_plan.py matches the labs.
 # ABOUTME: Catches a pin bumped in a README but not in the plan, or a new install step it misses.
 
+import re
 import shlex
 
 import pytest
 
-from tests.cluster.kind_cluster import helm_version_problem, webhook_not_yet_serving
+from tests.cluster.kind_cluster import (
+    HELM_SHA256,
+    HELM_VERSION,
+    helm_platform,
+    helm_url,
+    webhook_not_yet_serving,
+)
 from tests.cluster.lab_plan import (
     INSTALL_SHAPED,
     KIND_CONFIG,
@@ -100,15 +107,39 @@ def test_generate_name_manifests_are_created(lab: Lab) -> None:
     assert not wrong, f"{lab.name}/README.md applies generateName manifests: {wrong}"
 
 
-@pytest.mark.parametrize("version", ["v3.22.1", "v4.3.1", "v4.4.0"])
-def test_helm_versions_that_run_the_labs(version: str) -> None:
-    assert helm_version_problem(version) is None
+def test_cluster_check_pins_a_helm_3_release() -> None:
+    """The labs ask for Helm 3.x, so the check runs them with a Helm 3 release, never a 4.x one.
+
+    Helm 4.2.1, the gate's own `helm`, hangs in lab 00's cert-manager install.
+    """
+    assert re.fullmatch(r"v3\.\d+\.\d+", HELM_VERSION), HELM_VERSION
+    readme = (LABS_DIR.parent / "README.md").read_text()
+    assert "Helm](https://helm.sh/docs/intro/install/) 3.x" in readme
 
 
-@pytest.mark.parametrize("version", ["v4.2.1", "v4.0.0", "v2.17.0", "", "garbage"])
-def test_helm_versions_the_cluster_check_refuses(version: str) -> None:
-    """Helm 4.2.1 hangs in lab 00, so the check refuses it up front instead of after 15 minutes."""
-    assert helm_version_problem(version)
+@pytest.mark.parametrize(
+    ("system", "machine", "expected"),
+    [
+        ("Linux", "x86_64", "linux-amd64"),
+        ("Linux", "aarch64", "linux-arm64"),
+        ("Darwin", "arm64", "darwin-arm64"),
+        ("Darwin", "x86_64", "darwin-amd64"),
+    ],
+)
+def test_helm_platform_names_a_pinned_download(system: str, machine: str, expected: str) -> None:
+    assert helm_platform(system, machine) == expected
+    assert expected in HELM_SHA256
+    assert helm_url(expected) == f"https://get.helm.sh/helm-{HELM_VERSION}-{expected}.tar.gz"
+
+
+def test_a_host_without_a_pinned_helm_is_not_matched() -> None:
+    """A platform with no pinned sum fails the check up front instead of running unverified."""
+    assert helm_platform("Linux", "riscv64") not in HELM_SHA256
+    assert helm_platform("Windows", "AMD64") not in HELM_SHA256
+
+
+def test_helm_sums_are_sha256() -> None:
+    assert all(re.fullmatch(r"[0-9a-f]{64}", digest) for digest in HELM_SHA256.values())
 
 
 def test_only_a_refused_webhook_call_is_waited_out() -> None:

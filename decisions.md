@@ -514,3 +514,44 @@ kind cluster. It needs no third chart, and it keeps the commands the guide shows
 - The older-kubectl v0.14.1 note is unchanged. Its `kserve.yaml` has a Namespace
   object and no `ClusterStorageContainer`, so it does not hit these errors.
 - The Helm-chart route is not taken. It stays an option for a later ruling.
+
+## 2026-11-01T08:34:46Z · 3.3 · Kind-cluster check joins the E2E command with its own pinned Helm (#22)
+
+The `E2E command:` is now `uv sync --dev --locked && uv run pytest tests/e2e
+tests/cluster/kind_cluster.py`. The 2026-11-01T07:36:05Z entry (#13) set two
+conditions for this move: every lab passes, and the gate's Helm is 4.3 or later,
+or 3.x. Lab 04 passes since #20. The gate's Helm is still v4.2.1
+(`/var/lib/hecaton/cli/helm`, checked on this run), and that Helm hangs in lab
+00.
+
+**The check no longer uses the host's Helm.** The rules let a run add a
+pinned, dated dev dependency, and this is one. The check downloads Helm v3.22.1
+from get.helm.sh and checks the archive against a sha256 pinned in
+`tests/cluster/kind_cluster.py` (linux and darwin, amd64 and arm64; sums from
+get.helm.sh, fetched 2026-11-01). It then puts that binary first on PATH for
+every lab command. v3.22.1 is the newest Helm 3 release (released 2026-10-15,
+per `gh release list -R helm/helm`). The labs ask for Helm 3.x: see the README
+prerequisites and `get-helm-3` in lab 00. So the check now runs the labs with a
+Helm a learner would have, whatever the host has. That meets the second
+condition without a host change. The up-front refusal of Helm 4.0-4.2 is gone,
+since the host's `helm` is never called. `helm` is no longer a required tool.
+A host with no pinned sum fails up front and names its platform. A failed
+download or a wrong sum also fails, so an unverified Helm never runs.
+
+**Why not wait for a host upgrade.** Waiting needs a change to a shared host
+binary that every repo on the gate uses. It leaves the check depending on
+whatever Helm the host has next. Pinning instead keeps the check reproducible.
+It costs one 17 MB download per run.
+
+**Live result on 2026-11-01.** The new E2E command passed 43 of 43 in 5m31s.
+All 8 cluster-check tests passed, with the host's Helm 4.2.1 still first on
+PATH: lab 00's cert-manager install took 27s and lab 04 took 116s. A second run
+of the cluster check alone, on the final code, passed 8 of 8 in 4m00s. With kind and
+kubectl removed from PATH, all 8 tests error with `Missing: kind, kubectl` and
+pytest exits 1.
+
+**Known limit.** The cluster name `cnai-lab-check` is fixed. Two E2E runs on one
+host at the same moment would collide, and the second fails up front, saying the
+cluster already exists. This run did not find out whether the gate ever runs
+two E2E commands for this repo at once. If it does, the name needs a per-run
+suffix.

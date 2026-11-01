@@ -23,34 +23,36 @@ not land.
 
 Test command: `uv sync --dev --locked && uv run ruff check . && uv run ruff format --check . && uv run mypy tests/ && uv run pytest`
 
-E2E command: `uv sync --dev --locked && uv run pytest tests/e2e`
+E2E command: `uv sync --dev --locked && uv run pytest tests/e2e tests/cluster/kind_cluster.py`
 
-The E2E suite lives in `tests/e2e/` and needs outbound HTTPS. It fetches every
-remote install artifact the labs use (`kubectl apply -f` URLs, curl downloads,
-`git clone` targets, `helm repo add` indexes and pinned OCI chart versions) and
-fails when one no longer resolves. It also pulls the `kagent-crds` chart lab 06
-pins and validates every lab 06 manifest against that chart's CRD schemas
-(`tests/e2e/validate_kagent_crds.py`). `uv run pytest` does not collect it
-(`norecursedirs` in `pyproject.toml`), so the Test command stays offline. Neither
-suite creates a cluster.
+The E2E command runs two suites. Both need outbound HTTPS, and `uv run pytest`
+collects neither, so the Test command stays offline.
 
-Cluster check, run by hand: `uv run pytest tests/cluster/kind_cluster.py`
+The first lives in `tests/e2e/`. It fetches every remote install artifact the
+labs use (`kubectl apply -f` URLs, curl downloads, `git clone` targets, `helm
+repo add` indexes and pinned OCI chart versions) and fails when one no longer
+resolves. It also pulls the `kagent-crds` chart lab 06 pins and validates every
+lab 06 manifest against that chart's CRD schemas
+(`tests/e2e/validate_kagent_crds.py`). `norecursedirs` in `pyproject.toml` keeps
+it out of `uv run pytest`. It creates no cluster.
 
-This is the only check that runs the labs on a live cluster. It creates a kind
-cluster named `cnai-lab-check` from `labs/00-setup/kind-cluster.yaml`, with its
-own kubeconfig and Helm home. It then works through labs 00-06 in order: each
-lab's install commands at their pinned versions, then every file in its
-`manifests/`. The cluster is deleted at the end. A full run takes 3 to 5
-minutes. The check needs kind, kubectl, helm, a Docker daemon this user can
-reach (podman's Docker API works with `KIND_EXPERIMENTAL_PROVIDER=podman`) and
-outbound HTTPS. It fails up front, naming the problem, when kind, kubectl,
-helm or Docker is missing, or when Helm is a 4.x release older than 4.3. Helm
-4.2.1 hangs in lab 00, while 4.3.1 and 3.22.1 do not; older 4.x releases were
-not tried. The install plan
-lives in `tests/cluster/lab_plan.py`. `tests/validate_cluster_plan.py` runs in
-the Test command and fails when a README pin or install step drifts from the
-plan. The check stays out of the `E2E command:` until every lab passes on it;
-see `decisions.md`.
+The second, `tests/cluster/kind_cluster.py`, is the only check that runs the
+labs on a live cluster. `uv run pytest` skips collecting it because the file is
+not named `validate_*` or `test_*`. Run it alone with `uv run pytest
+tests/cluster/kind_cluster.py`. It creates a kind cluster named
+`cnai-lab-check` from `labs/00-setup/kind-cluster.yaml`, with its own
+kubeconfig and Helm home. It then works through labs 00-06 in order: each lab's
+install commands at their pinned versions, then every file in its `manifests/`.
+The cluster is deleted at the end. A full run takes 3 to 5 minutes. The check
+needs kind, kubectl, a Docker daemon this user can reach (podman's Docker API
+works with `KIND_EXPERIMENTAL_PROVIDER=podman`) and outbound HTTPS. It fails up
+front, naming the problem, when kind, kubectl or Docker is missing. It does not
+use the host's `helm`. It downloads Helm 3.22.1 from get.helm.sh, checks the
+archive against the sha256 pinned for linux and darwin on amd64 and arm64, and
+puts that Helm first on PATH for every lab command. The labs ask for Helm 3.x,
+and Helm 4.2.1, the gate's own, hangs in lab 00. The install plan lives in
+`tests/cluster/lab_plan.py`. `tests/validate_cluster_plan.py` runs in the Test
+command and fails when a README pin or install step drifts from the plan.
 
 ## Audience
 

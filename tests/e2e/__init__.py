@@ -1,2 +1,2 @@
-# ABOUTME: Marks tests/e2e/ as the end-to-end suite, run by the AGENTS.md `E2E command:` only.
+# ABOUTME: Marks tests/e2e/ as the URL and schema end-to-end suite, run by the AGENTS.md `E2E command:`.
 # ABOUTME: pyproject.toml keeps it out of the default `uv run pytest` collection via norecursedirs.

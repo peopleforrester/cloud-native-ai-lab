@@ -1,12 +1,17 @@
-# ABOUTME: By-hand check that runs the labs on a real kind cluster: create it, install, apply manifests.
-# ABOUTME: Run with `uv run pytest tests/cluster/kind_cluster.py`; fails loudly without kind, kubectl, helm or Docker.
+# ABOUTME: Runs the labs on a real kind cluster: create it, install, apply manifests. In the E2E command.
+# ABOUTME: Fetches its own pinned Helm 3; fails loudly without kind, kubectl, Docker or outbound HTTPS.
 
+import hashlib
+import io
 import os
-import re
+import platform
 import shlex
 import shutil
 import subprocess
+import tarfile
 import time
+import urllib.error
+import urllib.request
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -18,30 +23,34 @@ from tests.cluster.lab_plan import KIND_CONFIG, LABS, Lab, manifest_commands
 # cluster on the same host. The node image, port mappings and labels still come from the lab file,
 # so a running `ai-workshop` cluster holds host ports 30000-30002 and `kind create` fails on them.
 CLUSTER_NAME = "cnai-lab-check"
-REQUIRED_TOOLS = ("docker", "kind", "kubectl", "helm")
+REQUIRED_TOOLS = ("docker", "kind", "kubectl")
 COMMAND_TIMEOUT_SECONDS = 900
 WEBHOOK_SETTLE_SECONDS = 60
-# Helm 4.2.1 never returns from lab 00's `helm upgrade --install cert-manager ... --wait`: after the
-# pods are Ready it waits on deleting the startupapicheck hook Job, which does not exist yet, until
-# the command is killed. Helm 3.22.1 and 4.3.1 finish the same install in about 90 seconds.
-FIRST_GOOD_HELM_4 = (4, 3)
-HELM_VERSION = re.compile(r"^v(\d+)\.(\d+)\.")
+# The check runs the labs with this Helm, downloaded and checked against its sha256, not with
+# whatever `helm` the host has. The labs ask for Helm 3.x (README prerequisites, `get-helm-3` in
+# lab 00), and the gate's own Helm is 4.2.1, which never returns from lab 00's `helm upgrade
+# --install cert-manager ... --wait`: after the pods are Ready it waits on deleting the
+# startupapicheck hook Job, which does not exist yet, until the command is killed. Helm 3.22.1
+# finishes the same install in about 90 seconds. The sums are get.helm.sh's, fetched 2026-11-01.
+HELM_VERSION = "v3.22.1"
+HELM_SHA256 = {
+    "linux-amd64": "896cf63684a42a723d61c980369d6e588330927deb13676ca0d85006dd6da0ea",
+    "linux-arm64": "4c29e286b279d170fa048ddfc3e4e83dcd069ca9c52102766ba672d7149e694d",
+    "darwin-amd64": "cf850a81b908f8eef0331e6b18776da2767bcac639ca84472311dad20008495c",
+    "darwin-arm64": "e73da8a0b0d5193774fdff17ce6319c7436bb22ee229b45fd64f3c40368c753a",
+}
+HELM_ARCH = {"x86_64": "amd64", "amd64": "amd64", "aarch64": "arm64", "arm64": "arm64"}
+DOWNLOAD_TIMEOUT_SECONDS = 120
 
 
-def helm_version_problem(version: str) -> str | None:
-    """Why this `helm version --template {{.Version}}` output cannot run the labs, or None."""
-    match = HELM_VERSION.match(version.strip())
-    if match is None:
-        return f"could not read a Helm version from {version.strip()!r}"
-    major, minor = int(match.group(1)), int(match.group(2))
-    if major == 4 and (major, minor) < FIRST_GOOD_HELM_4:
-        return (
-            f"Helm {version.strip()} hangs in lab 00's cert-manager install (`--wait` never returns "
-            "after the startupapicheck hook). Use Helm 3.x, which the labs ask for, or Helm 4.3+."
-        )
-    if major not in (3, 4):
-        return f"the labs are written for Helm 3.x, and this is Helm {version.strip()}"
-    return None
+def helm_platform(system: str, machine: str) -> str:
+    """The get.helm.sh platform name for platform.system() and platform.machine()."""
+    return f"{system.lower()}-{HELM_ARCH.get(machine.lower(), machine.lower())}"
+
+
+def helm_url(target: str) -> str:
+    """Where get.helm.sh serves HELM_VERSION for a helm_platform() name."""
+    return f"https://get.helm.sh/helm-{HELM_VERSION}-{target}.tar.gz"
 
 
 def _run(argv: list[str], env: dict[str, str], cwd: Path) -> subprocess.CompletedProcess[str]:
@@ -108,7 +117,7 @@ def tools() -> None:
     missing = [tool for tool in REQUIRED_TOOLS if shutil.which(tool) is None]
     if missing:
         pytest.fail(
-            "The kind-cluster check needs kind, kubectl, helm and docker on PATH. "
+            "The kind-cluster check needs kind, kubectl and docker on PATH. "
             f"Missing: {', '.join(missing)}",
             pytrace=False,
         )
@@ -119,30 +128,64 @@ def tools() -> None:
             f"`docker info` failed:\n{info.stderr.strip()}",
             pytrace=False,
         )
-    helm = subprocess.run(
-        ["helm", "version", "--template", "{{.Version}}"],
+
+
+@pytest.fixture(scope="session")
+def helm_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Download HELM_VERSION for this host, check its sha256, and return the directory holding it."""
+    target = helm_platform(platform.system(), platform.machine())
+    if target not in HELM_SHA256:
+        pytest.fail(
+            f"The kind-cluster check pins Helm {HELM_VERSION} for {', '.join(HELM_SHA256)}, "
+            f"and this host is {target}.",
+            pytrace=False,
+        )
+    url = helm_url(target)
+    try:
+        with urllib.request.urlopen(url, timeout=DOWNLOAD_TIMEOUT_SECONDS) as response:
+            archive = response.read()
+    except (urllib.error.URLError, TimeoutError, OSError) as err:
+        pytest.fail(
+            f"The kind-cluster check needs outbound HTTPS to fetch Helm from {url}: {err}",
+            pytrace=False,
+        )
+    digest = hashlib.sha256(archive).hexdigest()
+    if digest != HELM_SHA256[target]:
+        pytest.fail(
+            f"{url} has sha256 {digest}, and the check pins {HELM_SHA256[target]}.", pytrace=False
+        )
+    bin_dir = tmp_path_factory.mktemp("helm")
+    helm = bin_dir / "helm"
+    with tarfile.open(fileobj=io.BytesIO(archive), mode="r:gz") as tar:
+        member = tar.extractfile(f"{target}/helm")
+        assert member is not None, f"{url} has no {target}/helm"
+        helm.write_bytes(member.read())
+    helm.chmod(0o755)
+    version = subprocess.run(
+        [str(helm), "version", "--template", "{{.Version}}"],
         capture_output=True,
         text=True,
         check=False,
     )
-    problem = helm_version_problem(helm.stdout)
-    if problem:
-        pytest.fail(
-            f"The kind-cluster check cannot use {shutil.which('helm')}: {problem}", pytrace=False
-        )
+    assert version.stdout.strip() == HELM_VERSION, _describe(f"{helm} version", version)
+    return bin_dir
 
 
 @pytest.fixture(scope="session")
-def cluster_env(tools: None, tmp_path_factory: pytest.TempPathFactory) -> Iterator[dict[str, str]]:
+def cluster_env(
+    tools: None, helm_dir: Path, tmp_path_factory: pytest.TempPathFactory
+) -> Iterator[dict[str, str]]:
     """Create the lab cluster from labs/00-setup/kind-cluster.yaml and delete it afterwards.
 
-    kubectl and helm get a kubeconfig and Helm home of their own under the pytest temp dir, so
-    the run neither switches the user's current context nor adds repos to their Helm config.
+    The pinned Helm comes first on PATH, so every lab's `helm` command runs it. kubectl and helm
+    get a kubeconfig and Helm home of their own under the pytest temp dir, so the run neither
+    switches the user's current context nor adds repos to their Helm config.
     """
     home = tmp_path_factory.mktemp("kind-check")
     kubeconfig = home / "kubeconfig"
     env = {
         **os.environ,
+        "PATH": f"{helm_dir}{os.pathsep}{os.environ.get('PATH', '')}",
         "KUBECONFIG": str(kubeconfig),
         "HELM_CACHE_HOME": str(home / "helm-cache"),
         "HELM_CONFIG_HOME": str(home / "helm-config"),
