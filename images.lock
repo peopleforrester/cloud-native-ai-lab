@@ -1,0 +1,12 @@
+# images.lock: every container image this repo depends on, pinned by digest.
+# Columns: ref  digest  source  saved   (whitespace-separated, one image per line)
+# source: repo:<owner/name[/path]>  build context in a repo we own
+#         build:<path>              built from <path> in this repo; digest may be -
+#         upstream:<url>            third-party image built from someone else's source
+#         none                      handed to us built: the saved tarball is the only copy
+#         not-an-image:<why>        a placeholder or deliberate bad example; digest -
+# Written by scripts/mirror-images.sh in llm-coding-workflow; the rule is
+# claude-config/rules/infra/image-retention.md there.
+kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5 sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5 upstream:https://github.com/kubernetes-sigs/kind 2026-11-13
+busybox:1.36 sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662 upstream:https://github.com/docker-library/official-images 2026-11-13
+ghcr.io/kagent-dev/kagent/tools:0.2.1 sha256:50b431281d3e32666f27a292962fd486aabaac157083a844d037c12137e353aa upstream:https://github.com/kagent-dev/tools 2026-11-13
