@@ -10,4 +10,4 @@
 kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5 sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5 upstream:https://github.com/kubernetes-sigs/kind 2026-11-13
 busybox:1.36 sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662 upstream:https://github.com/docker-library/official-images 2026-11-13
 ghcr.io/kagent-dev/kagent/tools:0.2.1 sha256:50b431281d3e32666f27a292962fd486aabaac157083a844d037c12137e353aa upstream:https://github.com/kagent-dev/tools 2026-11-13
-ghcr.io/kagent-dev/kagent/tools:0.3.0 sha256:cb89eb76216195a90cac73846b447525b6e6e33e45154d1ded9621bf11340315 upstream:https://github.com/kagent-dev/tools -
+ghcr.io/kagent-dev/kagent/tools:0.3.0 sha256:cb89eb76216195a90cac73846b447525b6e6e33e45154d1ded9621bf11340315 upstream:https://github.com/kagent-dev/tools 2026-11-15
