@@ -555,3 +555,28 @@ host at the same moment would collide, and the second fails up front, saying the
 cluster already exists. This run did not find out whether the gate ever runs
 two E2E commands for this repo at once. If it does, the name needs a per-run
 suffix.
+
+## 2026-11-15T03:07:19Z · 3.3 · Kind-cluster check: the gate's podman setup confirmed, the move from #13 closed (#21)
+
+#21 asked to move the kind-cluster check into the `E2E command:` once every lab
+passes on it, and to confirm the gate's container setup. The move itself landed
+in #22 (commit f79fa29, entry 2026-11-01T08:34:46Z above): lab 04 passes since
+#20, and the check brings its own Helm v3.22.1, so the gate's Helm v4.2.1 no
+longer matters. f79fa29 is on main, which staging reaches only after the heavy
+gate runs this repo's E2E command, so the check has run green on the gate.
+
+**The gate's setup, confirmed on 2026-11-15.** The coordinator ran, as the
+gate user `hecaton-gate` with `HOME=/var/lib/hecaton/gate/home`, `docker
+context ls`, `docker info`, `kind version` and `helm version`. Contexts
+`default` and `podman` exist, and `podman` is current
+(`unix:///run/user/111/podman/podman.sock`). `docker info` answers, and kind is
+v0.33.0. Helm is still v4.2.1, which the check does not call. That command set
+`KIND_EXPERIMENTAL_PROVIDER=podman` itself, so it does not prove the gate does.
+The hecaton source does: `src/hecaton/run/launcher.py` puts
+`KIND_EXPERIMENTAL_PROVIDER=podman` in `TOOL_ENV`, and
+`src/hecaton/run/checkrun.py` builds every gate command's environment from it
+(`BASE_ENV`). `deploy/netcup/setup.sh` runs `docker context use podman` in each
+HOME it sets up.
+
+Nothing in the check changes. `tests/cluster/kind_cluster.py` keeps its place
+and name; the E2E command names it, as #21 allowed.
